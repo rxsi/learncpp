@@ -97,6 +97,14 @@ Blob<T>::Blob(): data(std::make_shared<std::vector<T>>()) {}
 template <typename T>
 Blob<T>::Blob(std::initializer_list<T> il): data(std::make_shared<std::vector<T>>(il)) {} // initialize_list不定参数，使得可以使用 Blob<string> s = {"a", "b", "c"};
 
+/*
+try...catch 一个构造函数
+*/
+template <typename T>
+Blob<T>::Blob(std::initializer_list<T> il) try: data(std::make_shared<std::vector<T>>(il)){}
+catch(const std::bad_alloc &e) {/* do sommeting*/} // catch使用引用,才可以修改异常,比如可以修改后再次throw抛出给上层
+
+
 template <typename T>
 template <typename It>
 Blob<T>::Blob(It b, It c): data(std::make_shared<std::vector<T>>(b, c)) {} // 接收不同类型的迭代器，用以初始化vector，比如Blob<int> a1(vi.begin(), bi.end());
