@@ -55,7 +55,7 @@ public:
 };
 
 // 偏特例化
-// 主要分为两种：1）对部分模板参数进行全特化
+// 主要分为两种：1）对部分模板参数进行全特化; 2）对模板参数特性进行特例化，包括将参数特例化为指针、引用、另一个模板类等
 // 普通通用函数模板
 template <typename T1, typename T2> void compare(T1 t1, T2 t2)
 {
@@ -74,13 +74,13 @@ template <typename T1, typename T2> void compare(T1* t1, T2* t2)
     cout << "use spe pointer template compare" << endl;
 }
 
-// // 特例化参数类型
-// template <typename T1, typename T2> void compare(vector<T1>& vecLeft, vector<T2>& vecRight)
-// {
-//     cout << "use spe vector template compare" << endl;
-// }
+// 特例化参数类型
+template <typename T1, typename T2> void compare(vector<T1>& vecLeft, vector<T2>& vecRight)
+{
+    cout << "use spe vector template compare" << endl;
+}
 
-
+// 类模板特例化与函数模板特例化相似
 
 int main()
 {
