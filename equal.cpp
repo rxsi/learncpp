@@ -19,7 +19,7 @@ protected:
     bool equal(const Base&) const override;
 };
 
-bool operator==(const Base &lhs, const Base &rhs)
+bool operator==(const Base &lhs, const Base &rhs) // 定义成友元方法，是为了能够让调用==的时候搜索到类的同层作用域而找得到该函数
 {
     cout << "operator==" << endl;
     return typeid(lhs) == typeid(rhs) && lhs.equal(rhs);

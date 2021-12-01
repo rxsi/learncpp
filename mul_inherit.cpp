@@ -149,6 +149,7 @@ int main()
 {
     C c;
     A &ref_a = c;
+    cout << typeid(ref_a).name() << endl;
     A *point_a = new C();
     ref_a.print_v();
     ref_a.vir_print(); // 打印C， 具有多态性
