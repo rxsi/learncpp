@@ -1,4 +1,5 @@
 #include<iostream>
+#include<typeinfo>
 using namespace std;
 /*
 多继承会有菱形继承的问题。
@@ -18,6 +19,16 @@ public:
     {
         cout << "initial A" << endl;
     }
+
+    void print_v()
+    {
+        cout << "pint_v A" << endl;
+    }
+
+    virtual void vir_print()
+    {
+        cout << "vir_print A" << endl;
+    }
 };
 
 
@@ -33,6 +44,17 @@ public:
     {
         cout << "initial B" << endl;
     }
+
+
+    void print_v()
+    {
+        cout << "pint_v B" << endl;
+    }
+
+    void vir_print() override
+    {
+        cout << "vir_print B" << endl;
+    }
 };
 
 class C: public B
@@ -46,6 +68,18 @@ public:
     C()
     {
         cout << "initial C" << endl;
+    }
+
+
+    void print_v()
+    {
+        cout << "pint_v C" << endl;
+    }
+
+
+    void vir_print() override
+    {
+        cout << "vir_print C" << endl;
     }
 };
 
@@ -113,11 +147,22 @@ public:
 
 int main()
 {
-    C(); // 会默认调用父类的无参构造函数
-    C(12); // 正常的初始化构造，会从下往上的调用父类的构造函数，如果不指定调用，则默认调用父类的无参构造函数
+    C c;
+    A &ref_a = c;
+    A *point_a = new C();
+    ref_a.print_v();
+    ref_a.vir_print(); // 打印C， 具有多态性
 
-    XY();
-    XY(3); // 如果没有虚继承，那么Base父类会被构造两次，即有两个Base父类对象被实例化
-    //如果是虚继承，那么Base父类将会被构造一次，而且～～～～ 会有XY负责首先调用Base的无参构造函数，再分别调用X、Y的有参构造函数
-    // 尽管X、Y的有参构造函数会调用Base的有参构造函数，但是并不会执行！！！！！！！！！！
+    point_a->print_v();
+    point_a->vir_print(); // 打印C，具有多态，父类指针可以指向子类对象
+
+
+    // C c(); // 会默认调用父类的无参构造函数
+    // A *a = &c;
+    // C(12); // 正常的初始化构造，会从下往上的调用父类的构造函数，如果不指定调用，则默认调用父类的无参构造函数
+
+    // XY();
+    // XY(3); // 如果没有虚继承，那么Base父类会被构造两次，即有两个Base父类对象被实例化
+    // //如果是虚继承，那么Base父类将会被构造一次，而且～～～～ 会有XY负责首先调用Base的无参构造函数，再分别调用X、Y的有参构造函数
+    // // 尽管X、Y的有参构造函数会调用Base的有参构造函数，但是并不会执行！！！！！！！！！！
 }

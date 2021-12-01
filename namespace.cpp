@@ -74,3 +74,36 @@ void mainip()
 }
 
 // 9. 当函数参数函数有类、类引用、类指针时，如果在常规的命名空间中查找不到函数，则会从该类所属的命名空间中查找。
+// 注意，当该函数本身是类内的一个成员函数，则并不能从类所属的命名空间中查找到，因为类的命名空间是它定义的位置，而不是类内部
+namespace NS
+{
+    class Quote {
+        void display(const Quote&) {}
+    };
+    void display(const Quote&) {}
+}
+
+class Bulk_item: public NS::Quote {};
+
+
+namespace A
+{
+    class C
+    {
+        friend void f2();
+        friend void f(const C&);
+        void f(const C&);
+    };
+}
+
+
+int main()
+{
+    Bulk_item item;
+    display(item); // 如果在全局作用域也定义了一个display同名同参函数，会造成二义性，编译报错
+
+    A::C cobj;
+    f(cobj); // 当第一次出现友元声明的类/函数时，默认会认为他是定义在外层的命名空间中，因此这种调用方式成立。注意如果是类内普通的成员函数则是不能这么调用的。
+    // f2();
+    return 0;
+}

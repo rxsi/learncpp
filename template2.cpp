@@ -61,6 +61,7 @@ template <typename T1, typename T2> void compare(T1 t1, T2 t2)
 {
     cout << "use normal template compare " << "t1: " << typeid(t1).name() << " " << t1 << " t2: " << typeid(t2).name() << " " << t2 << endl;
 }
+// typeid判断指针类型时得到的是pointer类型，而判断引用类型时，得到的是引用指向对象的类型
 
 // 部分参数特例化
 template <typename T2> void compare(int t1, T2 t2)
