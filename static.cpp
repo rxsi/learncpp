@@ -25,24 +25,62 @@ b. const变量可以直接在类内定义
 因为C++只能是一次定义，因此如果不同文件定义了相同的变量名，将会冲突，使用匿名命名空间即可规避掉这一问题
 */
 
+// #include<iostream>
+// using namespace std;
+// class A
+// {
+// public:
+//     int k; // 如果没有初始化,是个随机值
+//     static void test();
+//     static const void test1(){};
+//     static int j; // 如果没有在类外显式的定义,那么会编译不过.
+// private:
+//     static int i; 
+//     static const int period = 30; // 可以在类内直接定义
+//     static constexpr int grade = 40; // 可以在类内直接定义，使用constexpr编译器会进行校验。
+// };
 
-class A
-{
-public:
-    static void test();
-    static const void test1(){};
+// void A::test(){} // 不能加static关键字
 
-private:
-    static int i; 
-    static const int period = 30; // 可以在类内直接定义
-    static constexpr int grade = 40; // 可以在类内直接定义，使用constexpr编译器会进行校验。
-};
+// int A::i = 10;
 
-void A::test(){} // 不能加static关键字
+// int m; // 全局变量和静态变量会被存储在BSS段(一个默认全为0的内存空间),因此初始值为0
+// static int n; //初始值为0
+// int main()
+// {
+//     A a;
+//     cout << a.k << endl;
+//     int l;
+//     cout << l << endl;
+//     cout << m << endl;
+//     cout << n << endl;
+// }
 
-int A::i = 10;
+#include<iostream> 
+using namespace std; 
 
-int main()
-{
-    
-}
+class Apple 
+{ 
+    int i; 
+    public:
+        Apple() 
+        { 
+            i = 0; 
+            cout << "Inside Constructor\n"; 
+        } 
+        ~Apple() 
+        { 
+            cout << "Inside Destructor\n"; 
+        } 
+}; 
+
+int main() 
+{ 
+    int x = 0; 
+    if (x==0) 
+    { 
+        Apple obj; // C++ 中在if等定义的变量出了这个作用域后就会销毁,这与Python不同!!!!!!!!!    
+    } // 当Apple对象不是静态时,if调用结束立即就会调用析构函数.
+    // 当使用 static Apple obj; 则会在整个程序结束后再析构
+    cout << "End of main\n"; 
+} 
