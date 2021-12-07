@@ -99,8 +99,7 @@ void testBase( Base&p)
 {
     cout << "对象的内存起始地址：" << &p << endl;
     cout << "type_info信息:" << endl;
-    RTTICompleteObjectLocator str = *((RTTICompleteObjectLocator*)*((int*)*(int*)(&p) - 1));
- 
+    RTTICompleteObjectLocator str = *((RTTICompleteObjectLocator*)*((int*)*(int*)(&p) - 1)); // RTTICompleteObjectLocator 需要自己实现。
  
     string classname(str.pTypeDescriptor->name);
     classname = classname.substr(4, classname.find("@@") - 4);
