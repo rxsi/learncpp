@@ -84,3 +84,10 @@ int main()
     // 当使用 static Apple obj; 则会在整个程序结束后再析构
     cout << "End of main\n"; 
 } 
+
+// static不能声明为virtual, const
+// 不能是virtual的原因: 因为virtual需要this指针调用,即__thiscall.而静态函数没有this指针,
+// 而且静态成员函数是在编译期就确定的,而virtual是在运行时绑定的
+
+// 不能是const的原因: 因为const需要this指针调用,本质上,this指针是指针常量,当函数是const时,则实际上作用在this指针上,
+// 变成了指向常量的指针常量.
