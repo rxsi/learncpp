@@ -15,13 +15,20 @@ public:
         SIZE = 100, // 但是隐含的数据类型是整数,最大值有限,不能表示浮点数
         COLOR = 200
     };
+    void change() const;
 private:
     const int a; // 需要在构造函数处完成定义赋值
+    mutable int k; // 声明总是可以改变,即使在const函数中
     static int b;
     static const int c; // 注意这种形式属于类内声明而在类外定义
     // 当我们需要在类内使用该c值时,必须要在类内先定义.此时做法是:
     static const int d = 5; // 注意这种做法某些编译器不支持.如果不支持又想要使用该值,那么只能使用enum形式了.
 };
+
+void Test::change() const{
+    //a = 1; // 这样是无法修改的,因为函数声明了是const的.
+    k = 2; // 可以修改,因为是multable
+}
 
 int Test::b = 2;
 const int Test::c = 3;
