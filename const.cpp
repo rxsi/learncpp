@@ -18,11 +18,14 @@ public:
 private:
     const int a; // 需要在构造函数处完成定义赋值
     static int b;
-    static const int c;
+    static const int c; // 注意这种形式属于类内声明而在类外定义
+    // 当我们需要在类内使用该c值时,必须要在类内先定义.此时做法是:
+    static const int d = 5; // 注意这种做法某些编译器不支持.如果不支持又想要使用该值,那么只能使用enum形式了.
 };
 
 int Test::b = 2;
 const int Test::c = 3;
+const int Test::d;
 
 int main(){
     cout << sizeof(Test) << endl; // 输出为4,因为函数,枚举,静态都不占空间,只有int a占4字节的空间
