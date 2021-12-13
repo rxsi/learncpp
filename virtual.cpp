@@ -1,6 +1,7 @@
 /*
 虚函数
 C++对象内存布局
+注意:如果一个类不需要被继承,那么就不要将其析构函数声明为虚函数,虽然可以正常运行,但是会徒增类内存
 
 1. 虚函数表属于类，类的所有对象共享这个类的虚函数表
 2. 虚指针是在调用类的构造函数创建实例时初始化的，因此是属于对象的
@@ -136,36 +137,65 @@ C++对象内存布局
  
 // }
 
-// 虚函数可以被私有化,但是当被私有化后
-#include<iostream> 
+// // 虚函数可以被私有化,但是当被私有化后
+// #include<iostream> 
+// using namespace std; 
+
+// class Derived; 
+
+// class Base { 
+//     private: 
+//         virtual void fun() { cout << "Base Fun"; } 
+//         friend int main(); // 必须声明为友元,否则编译不通过
+// }; 
+
+// class Derived: public Base { 
+//     public: 
+//         void fun() { cout << "Derived Fun"; } 
+// }; 
+
+// int main() 
+// { 
+//     Base *ptr = new Derived; 
+//     ptr->fun(); 
+//     return 0; 
+// }
+
+// class Base { 
+//     public: 
+//         virtual void fun() { cout << "Base Fun"; } 
+// }; 
+
+// class Derived: public Base { 
+//     private:  // 这种方式编译可以通过
+//         void fun() { cout << "Derived Fun"; } 
+// }; 
+
+
+#include<iostream>
 using namespace std; 
+// 当把虚析构函数声明为纯虚函数时,目的是将base类定义为抽象类.
+// 但是需要注意的是,
+class Base{
+public:
+    virtual ~Base() = 0;
+};
 
-class Derived; 
+Base::~Base(){
+    cout << "~Base()" << endl;
+}; // 必须要声明,否在析构时会失败.
 
-class Base { 
-    private: 
-        virtual void fun() { cout << "Base Fun"; } 
-        friend int main(); // 必须声明为友元,否则编译不通过
-}; 
+class Derived: public Base{
+public:
+    ~Derived(){
+        cout << "~Derived()" << endl;
+    };
+};
 
-class Derived: public Base { 
-    public: 
-        void fun() { cout << "Derived Fun"; } 
-}; 
+int main(){
+    Derived *base = new Derived(); // 尽管是派生类指针指向派生类对象,但是析构时还是会调用基类的虚构函数,因此仍然需要实现基类的虚构函数
+    delete base; // 证明了,只要是创建了派生类,他的父类,一并都会被创建.
 
-int main() 
-{ 
-    Base *ptr = new Derived; 
-    ptr->fun(); 
-    return 0; 
+    Base *base2 = new Derived();
+    delete base2;
 }
-
-class Base { 
-    public: 
-        virtual void fun() { cout << "Base Fun"; } 
-}; 
-
-class Derived: public Base { 
-    private:  // 这种方式编译可以通过
-        void fun() { cout << "Derived Fun"; } 
-}; 
