@@ -100,7 +100,7 @@
 
 //             // 需要使用内存屏障 https://www.drdobbs.com/cpp/c-and-the-perils-of-double-checked-locki/184405726
 //             // https://preshing.com/20130930/double-checked-locking-is-fixed-in-cpp11/
-//             lock_guard<mutex> lk(m_mutex); // 优化的方式是加入内存屏障.即使用volatite
+//             lock_guard<mutex> lk(m_mutex); // 优化的方式是加入内存屏障.java的做法是使用volatite,C++则是使用atmoic库之类的,具体看上面链接.
 //             if (instance_ptr == nullptr){ 
 //                 instance_ptr = shared_ptr<Singleton>(new Singleton); //b
 //             }
