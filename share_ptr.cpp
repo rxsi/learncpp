@@ -40,6 +40,8 @@
 // 本质上和shared_ptr 类似,也是保存了T对象指针和_Sp_counted_ptr对象指针
 // 不过区别的是当增加/减少引用修改的是_Sp_counted_ptr对象的weak计数
 
+// 智能指针的思想就是 RAII机制, 即使用局部对象(栈内存)去管理资源(定义在堆内存的对象)
+
 #include<iostream>
 #include<memory>
 using namespace std;
