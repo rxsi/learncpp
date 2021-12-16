@@ -72,3 +72,29 @@ int main(){
     //     pt5[i] = i;
     // }
 }
+
+/*
+注意: C++编译器对一个语句内的调用可能会有重排序,因此可能带来一些风险
+*/
+
+// 假设一个函数的构造如下:
+void replace(std::shared_ptr<int>, int);
+
+int main(){
+    replace(std::shared_ptr<int>(new int(10)), 20);
+}
+
+// 对于参数部分,操作的过程如下:
+// 1. operator new
+// 2. 调用 shared_ptr 构造函数
+// 3. 拷贝int参数
+
+/*
+上述编译器可能会进行重排, 如顺序变为: 1. 3. 2
+如果在3阶段发生异常,那么就会使得new出来的对象失去智能指针的指向,造成无法释放
+*/
+// 解决方法:
+int main(){
+    auto ptr = make_shared<int>(new int(10));
+    replace(ptr, 20); // 这样就可以确保ptr的安全
+}
