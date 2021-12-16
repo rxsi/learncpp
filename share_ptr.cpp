@@ -98,3 +98,5 @@ int main(){
     auto ptr = make_shared<int>(new int(10));
     replace(ptr, 20); // 这样就可以确保ptr的安全
 }
+
+// 智能指针支持定制型的删除器,可以解决跨DLL删除对象而调用错deletor的问题
