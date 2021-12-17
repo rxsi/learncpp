@@ -10,7 +10,7 @@ using namespace std;
 
 // 特例化
 
-// 函数特例化
+// 函数特例化(函数不可以偏特化)
 // 首先定义了一个通用的函数模板，用以返回二者之间的较大者
 template <typename T> T Max(T t1, T t2)
 {
@@ -32,6 +32,11 @@ const char* Max(const char* t1, const char* t2)
 {
     cout << "use normal Max" << endl;
     return (strcmp(t1, t2)) > 0 ? t1 : t2;
+}
+
+// 还可以使重载之后的函数依然是一个模板
+template<typename T> T Max(T* t1, T* t2){ // Max之后没有<>代表这是一个非特例化的模板函数
+    cout << "use overload template Max" << endl;
 }
 
 // 类特例化
@@ -87,6 +92,9 @@ int main()
 {
     Max(1, 2); // 使用普通版本
     Max("1", "2"); // 使用特例化版本，如果存在重载的普通函数，则优先使用普通函数
+    int *ptr_a = new int(1);
+    int *ptr_b = new int(2);
+    Max(ptr_a, ptr_b); // 使用重载的指针版本
 
     Base<int>(); // 通用版本
     Base<char*>(); // char*版本
@@ -104,4 +112,3 @@ int main()
     vector<int> vecRight{1,2,3};
     compare(vecLeft,vecRight); // 同样道理，需要对vector类型进行特殊的处理。因此定义了特例化的函数
 }
-

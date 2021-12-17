@@ -158,3 +158,86 @@ int main(int argc, char const *argv[])
     3)全局作用域查找不到,又因为ct1是一个类变量,因此查找类的作用域,发现namespace A{}中定义有swap函数.因此调用
     4)ADL 能找到完全在类或类模板内定义的友元函数（典型为重载的运算符），即使它始终未在命名空间层次进行声明。(也就是说swap不是定义在namespace A中,则需要在类中声明为友元函数并定义)
 */
+
+
+/*
+关于std:
+std::swap是一个模板函数,我们可以在namespace std中进行特例化,但是不可以进行重载或者是添加新的class/function
+*/
+
+/*
+std::swap 默认的实现逻辑是:
+namespace std{
+    template<typename T>
+    void swap(T& a, T& b){
+        T temp(a);
+        a = b;
+        b = temp;
+    }
+}
+可见实现依赖的是T的拷贝构造函数和拷贝赋值函数
+但是如果我们的模型是pimpl(即类内的成员变量是一个指针,通过这个指针指向了另外的大对象),那么我们在swap时只需要交换两个指针即可,因此std::swap版本并不适用
+
+方式1:特例化std::swap一个函数模板(大部分stl的容器使用的就是这种方式)
+namespace std{
+    template<>
+    void swap<Wiget>(Wiget& a, Wiget& b){ 
+        swap(a.ptr, b.ptr) // 使用通用模板对指针进行交换
+    }
+}
+使用上面的方式的前提是:指针变量不是private的
+
+指针变量往往是private的,因此我们还需要在函数内部定义一个成员函数swap,用来操作操作指针
+namespace std{
+    template<>
+    void swap<Wiget>(Wiget& a, Wiget& b){ 
+        a.swap(b); // 使用对象的内置swap方法
+    }
+}
+
+class Wiget{
+private:
+    WigetImpl *impl;
+public:
+    void swap(WigetImple &rhs){
+        using std::swap;
+        swap(impl, rhs.impl); // 使用std::swap的通用版本,这里使用using std::swap而不是直接指定调用std::swap是为了更好的兼容性,例如impl内置有swap,那么如此就会优先调用impl的内置版本
+    }
+};
+
+以上方法只能适用于非模板的类!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+比方说我们的类定义如下:
+template<typename T>
+class Wiget{...};
+template<typename T>
+class WigetImpl{...};
+那么关于std::swap的特例化需要是:
+namespace std{
+    template<typename T>
+    void swap<Wiget<T>>(Wiget<T>& a, Wiget<T>& b){ // 这属于对模板函数的偏特化,这种写法是非法的
+        a.swap(b);
+    }
+}
+
+改成:
+namespace std{
+    template<typename T>
+    void swap(Wiget<T>& a, Wiget<T>& b){ // 这属于对模板函数的重载,但是std不允许在该命名空间内进行重载
+        a.swap(b);
+    }
+}
+
+所以为了通用性,我们需要把它定义在std命名空间之外, 一般放在和Wiget,WigetImpl同层的命名空间
+template<typename T>
+void swap(Wiget<T>& a, Wiget<T>& b){ //现在当调用时,会优先查找到当前命名空间的swap函数(这个命名空间要定义有该swap函数),找到之后即可调用到impl对象内的swap函数 
+    a.swap(b);
+}
+
+总结:
+1. 定义swap需要在一个 member_function 用以操作private的指针成员函数,且该函数是noexcept的
+2. 对于单纯的class可以有两种方式:
+    1) 特例化std::swap, 这种方式书里面介绍是为了兼容某些程序员std::swap的调用方法,但是我觉得没必要.(这样定义,可以使用std::swap 和 swap 两种调用方式)
+    2) 定义non_member_function 的 swap
+3. 对于class template, 只能定义 non_member_function 的 swap, 因为需要进行重载,而std并不允许在它的命名空间内重载
+
+*/
