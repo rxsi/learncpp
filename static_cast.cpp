@@ -26,6 +26,7 @@ private:
 int main(){
     int a = 1;
     double b = static_cast<double>(a); // 从这句简单的例子可以看出,static_cast是将原有的int对象转换为double对象.
+    int c = static_cast<int>(b); // 可以逆向
     cout << "a = " << typeid(a).name() << " b = " << typeid(b).name() << endl;
     // 因此引出了一个容易犯下的错误:
     /*
@@ -60,3 +61,8 @@ int main(){
     
     */
 }
+/*
+dynamic_cast 是用于在继承链中进行的转换操作
+性能低下,应该少使用. 它使用的strcmp比较类名
+应该通过虚函数的多态性来实现调用不同的函数版本
+*/
