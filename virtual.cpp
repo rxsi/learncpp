@@ -172,33 +172,73 @@ C++对象内存布局
 // }; 
 
 
-#include<iostream>
-using namespace std; 
-// 当把虚析构函数声明为纯虚函数时,目的是将base类定义为抽象类.
-// 但是需要注意的是,
-class Base{
-public:
-    virtual ~Base() = 0;
-};
+// #include<iostream>
+// using namespace std; 
+// // 当把虚析构函数声明为纯虚函数时,目的是将base类定义为抽象类.
+// // 但是需要注意的是, 必须要同时定义该虚函数
 
-Base::~Base(){
-    cout << "~Base()" << endl;
-}; // 必须要声明,否在析构时会失败.
+// // 这引出了一个问题,纯虚函数也是可以有定义的,用以提供默认的实现,派生类可以通过Base::fun()强制调用父类的默认纯虚函数实现
+// class Base{
+// public:
+//     virtual ~Base() = 0;
+//     virtual void fun() = 0;
+// };
 
-class Derived: public Base{
-public:
-    ~Derived(){
-        cout << "~Derived()" << endl;
-    };
-};
+// Base::~Base(){
+//     cout << "~Base()" << endl;
+// }; // 必须要声明,否在析构时会失败.
 
-int main(){
-    Derived *base = new Derived(); // 尽管是派生类指针指向派生类对象,但是析构时还是会调用基类的虚构函数,因此仍然需要实现基类的虚构函数
-    delete base; // 证明了,只要是创建了派生类,他的父类,一并都会被创建.
+// void Base::fun(){
+//     cout << "Base::fun()" << endl;
+// }
 
-    Base *base2 = new Derived();
-    delete base2;
-}
+// class Derived: public Base{
+// public:
+//     ~Derived(){
+//         cout << "~Derived()" << endl;
+//     };
+//     void fun() override{
+//         Base::fun(); // 调用父类的默认实现
+//         cout << "after Base::fun() " << endl;
+//     }
+// };
+
+// int main(){
+//     Derived *base = new Derived(); // 尽管是派生类指针指向派生类对象,但是析构时还是会调用基类的虚构函数,因此仍然需要实现基类的虚构函数
+//     delete base; // 证明了,只要是创建了派生类,他的父类,一并都会被创建.
+
+//     Base *base2 = new Derived();
+//     delete base2;
+
+//     Base* base3 = new Derived();
+//     base3->fun();
+//     delete base3;
+// }
 
 // 注意:不可在构造函数/析构函数中调用虚函数
 // 1)在构造/析构中调用的时候虚函数不具有多态性,即会调用到当前类的虚函数
+
+/*
+不要重写具有默认值的虚函数,因为默认值是静态绑定的!!!!!!!!!!!
+*/
+#include<iostream>
+#include<queue>
+#include<set>
+using namespace std;
+
+class Base{
+public:
+    virtual void fun(int a=1) = 0;
+};
+
+class Child: public Base{
+public:
+    void fun(int a=2) override{
+        cout << a << endl;
+    }
+};
+
+int main(){
+    Base *b = new Child();
+    b -> fun(); // 输出的是1,即定义在Base中的默认值
+}
