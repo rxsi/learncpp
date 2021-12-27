@@ -32,7 +32,7 @@ int main(){
         // 参数4: int flag: 定义一些设置,一般为0
 
         // 返回值: 如果返回值不等于buff长度,则发送数据失败
-        int ret = send(clientfd, SEND_DATA, strlen(SEND_DATA), 0);
+        int ret = send(clientfd, SEND_DATA, strlen(SEND_DATA), 0); // 这里使用的是阻塞模式,当无法发送时,会阻塞在这里.
         if (ret != strlen(SEND_DATA)){
             std::cout << "send data error." << std::endl;
             break;
