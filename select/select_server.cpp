@@ -1,12 +1,10 @@
-#ifdef __WIN32__
-# include <winsock2.h>
-# include <ws2tcpip.h>
-#define close(s) closesocket(s)
-#else
-# include <sys/socket.h>
-#endif
-
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<arpa/inet.h>
+#include<unistd.h>
 #include<iostream>
+#include<string.h>
+#include<sys/time.h>
 #include<vector>
 #include<errno.h>
 
@@ -24,11 +22,17 @@ int main(int argc, char* argv[]){
     // 初始化服务器地址
     sockaddr_in bindaddr;  // C++中struct可以不加
     bindaddr.sin_family = AF_INET;
-    #ifdef __WIN32__
-        bindaddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
-    #else
-        bindaddr.sin_addr.S_addr = htonl(INADDR_ANY);
-    #endif
+
+    // htonl (h: host; to: to; n: net; l: unsigned long) 意思是将计算机的内存顺序转换成网络字节顺序(也就是大端序\小端序调整)
+    // htons 也是一样的作用
+
+    // INADDR_ANY表示应用程序不关心bind绑定的ip,由底层自动选择一个合适的ip地址,适合在多网卡机器上选择ip,相当于0.0.0.0
+    // 如果只是想在本机上访问,则绑定ip可以使用127.0.0.1
+    // 局域网中的内部机器访问,则绑定机器的局域网ip
+    // 公网访问则需要是0.0.0.0或者 INADDR_ANY
+    bindaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    // 服务端只需要bind一个固定的端口,而如果是客户端则不能,否则同台机器将会无法启动多个客户端,因此对于客户端来说不进行bind或者bind(0),由底层自动分配
+    // 原因:tcp使用4元组进行区分,server虽然之后一个port,但是连接的client有不同的ip和port,因此可以构成不同的四元组.
     bindaddr.sin_port = htons(3000);
     // 这里将sockaddr_in(in代表的是ipv4)指针转换为了sockaddr指针,体现的是多态性.可选的还有:sockaddr_in6(ipv6), sockaddr_un(unix domain)
     // 参数1: int sock, socket文件描述符
@@ -119,7 +123,7 @@ int main(int argc, char* argv[]){
                     // 参数3: int : 指明缓冲区的大小
                     // 参数4: int : 一般为0,指定的是recv的一些操作细则
                     int length = recv(clientfds[i], recvbuf, 64, 0);
-                    if (length < 0){
+                    if (length <= 0){ // 当连接中断时,length为0,其他小于0的情况是发生了异常
                         // 收取数据出错
                         std::cout << "recv data error, clientfd: " << clientfds[i] << std::endl;
                         close(clientfds[i]);
@@ -152,4 +156,5 @@ int main(int argc, char* argv[]){
 2. 单个进程能够监听的fd数量有限,默认是1024,需要修改宏定义然后重新编译内核才可以修改
 3. select函数在每次调用之前都要对传入的参数进行重新设定,效率低
 4. 默认的timeval参数每次调用之后都会修改,因此需要每次都重新设定;1)0不阻塞等待,直接返回;2)NULL一直阻塞;3)有其他值则会阻塞等待对应时间
+5. 当接收数据recv发生异常时返回<0,当链接断开时返回=0
 */
