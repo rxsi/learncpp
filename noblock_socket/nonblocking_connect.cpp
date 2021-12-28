@@ -95,3 +95,10 @@ int main(){
 }
 
 // 模拟服务端: nc -v -l  3000
+
+// 设置连接时顺便接收第一组数据
+// 使用setsockopt 设置参数 TCP_DEFER_ACCEPT
+// 通过该参数:
+// 服务端: bind -> listen -> 客户端:connect -> send -> 服务端:accept -> recv
+// 如果没有该参数:
+// 服务端: bind -> listen -> 客户端:connect -> 服务端:accept -> 客户端:send -> 服务端:recv
