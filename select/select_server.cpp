@@ -85,7 +85,7 @@ int main(int argc, char* argv[]){
         // 参数4: fd_set*, 异常事件的fd集合
         // 参数5: 超时时间, NULL表示一直阻塞, 0表示不阻塞 
         // 返回 = -1.出错;  = 0在规定的阻塞时间内没有事件发生,因而超时; 否则监听到事件
-        int ret = select(maxfd + 1, &readset, NULL, NULL, &tm);
+        int ret = select(maxfd + 1, &readset, NULL, NULL, &tm); // select会根据传入的超时参数而阻塞一定时间
         if (ret == -1){
             // 出错,退出程序
             // 当执行发生错误时,会将错误写入errno,这是个c库的变量,用以记录函数call的错误信息
@@ -158,3 +158,5 @@ int main(int argc, char* argv[]){
 4. 默认的timeval参数每次调用之后都会修改,因此需要每次都重新设定;1)0不阻塞等待,直接返回;2)NULL一直阻塞;3)有其他值则会阻塞等待对应时间
 5. 当接收数据recv发生异常时返回<0,当链接断开时返回=0
 */
+
+// 模拟客户端: nc -v 127.0.0.1 3000
