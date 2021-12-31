@@ -56,8 +56,10 @@ int main(int argc, char* argv[]){
     // 存储客户端socket数组
     std::vector<int> clientfds;
     int maxfd; // 因为这个要是最大的套接字+1,因此每次新增套接字都需要实时计算比较
-
+    int count_times = 0; // 测试shutdown用.
     while (true){
+        sleep(1);
+        count_times++;
         fd_set readset; // fd_set 位图数组,每个位对应一个套接字(套接字就是int)
         FD_ZERO(&readset); // 置零
 
@@ -76,7 +78,7 @@ int main(int argc, char* argv[]){
 
         // 设置超时时间是1秒,注意每次都要重定义,因为传给select的是&tm,会被修改.
         timeval tm;
-        tm.tv_sec = 1;
+        tm.tv_sec = 5;
         tm.tv_usec = 0;
         // 暂且只检测可读事件,不检测可写和异常事件
         // 参数1: int nfds, 监听的fd的最大值+1
@@ -117,21 +119,39 @@ int main(int argc, char* argv[]){
             for (int i = 0; i < clientfdslength; ++i){
                 if (clientfds[i] != -1 && FD_ISSET(clientfds[i], &readset)){
                     memset(recvbuf, 0, sizeof(recvbuf));
-                    // 非监听socket, 接收数据
-                    // 参数1: int sock: 可接收数据的套接字
-                    // 参数2: char* : 缓冲区,字符数组,用以存放接收的数据
-                    // 参数3: int : 指明缓冲区的大小
-                    // 参数4: int : 一般为0,指定的是recv的一些操作细则
-                    int length = recv(clientfds[i], recvbuf, 64, 0);
-                    if (length <= 0){ // 当连接中断时,length为0,其他小于0的情况是发生了异常
-                        // 收取数据出错
-                        std::cout << "recv data error, clientfd: " << clientfds[i] << std::endl;
-                        close(clientfds[i]);
-                        // 不直接删除该元素,将该位置的元素标记为-1
-                        clientfds[i] = -1;
-                        continue;
+                    std::cout << "count_times = " << count_times << std::endl;
+                    // 测试当调用shutdown之后,如果接收缓存中还有数据,是否可以成功读取出来.
+                    // 循环3次之才进行数据读取
+                    if (count_times == 5){
+                        char testbuf[5];
+                        memset(testbuf, 0, sizeof(testbuf));
+                        int length = recv(clientfds[i], testbuf, 5, 0);
+                        std::cout << "before shut_down clientfd: " << clientfds[i] << ", recv data: " << testbuf << std::endl;
+                        shutdown(clientfds[i], SHUT_RD); //经过测试shutdown是阻止后续的写入,不会清楚当前的读缓冲区
+                        // close(clientfds[i]); 
+                        std::cout << "shut_down now " << std::endl;
                     }
-                    std::cout << "clientfd: " << clientfds[i] << ", recv data: " << recvbuf << std::endl;
+
+                    if (count_times >= 5){ 
+                        // 非监听socket, 接收数据
+                        // 参数1: int sock: 可接收数据的套接字
+                        // 参数2: char* : 缓冲区,字符数组,用以存放接收的数据
+                        // 参数3: int : 指明缓冲区的大小
+                        // 参数4: int : 一般为0,指定的是recv的一些操作细则
+                        int length = recv(clientfds[i], recvbuf, 64, 0);
+                        if (length == 0){
+                            std::cout << "after shutdown(RD), err_info = " << errno << std::endl; 
+                        }
+                        if (length < 0){ // 当连接中断时,length为0,其他小于0的情况是发生了异常
+                            // 收取数据出错
+                            std::cout << "recv data error, clientfd: " << clientfds[i] << " err_info = " << errno << std::endl;
+                            close(clientfds[i]); // 如果这里注销掉,当客户端进行挥手后,会服务端会停留在CLOSE_WAIT状态(不会消失,会占用fd套接字资源,LAST_ACK不会占用套接字资源),客户端则停留在FIN_WAIT2状态(等待tcp_fin_timeout后消失)
+                            // 不直接删除该元素,将该位置的元素标记为-1
+                            clientfds[i] = -1;
+                            continue;
+                        }
+                        std::cout << "clientfd: " << clientfds[i] << ", recv data: " << recvbuf << std::endl;
+                    }
                 }
             }
             

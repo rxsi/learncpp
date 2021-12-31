@@ -102,3 +102,25 @@ int main(){
 // 服务端: bind -> listen -> 客户端:connect -> send -> 服务端:accept -> recv
 // 如果没有该参数:
 // 服务端: bind -> listen -> 客户端:connect -> 服务端:accept -> 客户端:send -> 服务端:recv
+
+
+
+/*
+获取当前接收缓冲区的大小
+使用 ioctl
+示例:
+ulong bytesToRecv = 0; // 注意linux平台每次都要置零
+if (ioctl(fd, FIONREAD, &bytesToRecv) == 0){
+    cout << "get byteslen: " << bytesToRecv << endl;
+}
+
+需要注意,不要使用该参数去设置用户态接收缓冲区的大小,错误做法:
+ulong bytesToRecv = 0; 
+if (ioctl(fd, FIONREAD, &bytesToRecv) != 0) return; //出错
+
+vector<char> RecvBuf(bytesToRecv);
+int ret = recv(fd, &RecvBuf, bytesToRecv, 0);
+
+因为很有可能在创建vector缓冲区时,内核态的接收缓冲区就又增长了,因此接收的数据不完整.
+应该根据业务需求限定固定的接收字节数
+*/
