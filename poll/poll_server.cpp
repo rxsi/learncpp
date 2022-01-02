@@ -149,8 +149,9 @@ int main(){
             } else if (fds[i].revents & POLLERR){
                 ++i;
                 //TODO: 暂不处理
+            } else {
+                ++i;
             }
-            
         }
 
         for (auto& clientfd : fds){
