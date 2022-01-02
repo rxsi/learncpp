@@ -102,11 +102,10 @@ int main(){
         }
 
         // 可见还是要遍历所有的fd，和select本质上无异
-        auto iter = fds.begin();
-        while (iter != fds.end()){
-            std::cout << "iter fd = " << iter->fd << std::endl;
-            if (iter->revents & POLLIN){ // 发生的事件是可读事件
-                if (iter->fd == listenfd){
+        int i = 0;
+        while (i < fds.size()){
+            if (fds[i].revents & POLLIN){ // 发生的事件是可读事件
+                if (fds[i].fd == listenfd){
                     // 监听socket，接受新连接
                     sockaddr_in clientaddr;
                     socklen_t clientaddrlen = sizeof(clientaddr);
@@ -128,29 +127,27 @@ int main(){
                             std::cout << "new client accepted, clientfd: " << clientfd << std::endl;
                         }
                     }
-                    ++iter;
+                    ++i;
                 } else {
                     // 普通的clientfd，收取数据
                     // std::vector<char> buf(64); // char buf[64] = {0} 数组初始化形式区别
                     // 使用char数组可以直接调用std::cout 输出
                     char buf[64] = {0};
-                    int m = recv(iter->fd, buf, 64, 0);
+                    int m = recv(fds[i].fd, buf, 64, 0);
                     if (m <= 0){
                         if (errno != EINTR && errno != EWOULDBLOCK){
                             // 书里面使用iter遍历所有连接，并检测是否等于当前当前fds[i].fd，不知为何
                             // 出错或对端关闭了连接，关闭对应的clientfd，并设置无效标志位
-                            close(iter->fd);
-                            iter = fds.erase(iter);
-                            // iter->fd = INVALID_FD;
-                            // exist_invalid_fd = true;
+                            close(fds[i].fd);
+                            fds.erase(fds.begin()+i);
                         }
                     } else {
                         std::cout << "recv from client: " << buf << ", clientfd: " << iter->fd << std::endl;
-                        ++iter;
+                        ++i;
                     }
                 }
             } else if (iter->revents & POLLERR){
-                ++iter;
+                ++i;
                 //TODO: 暂不处理
             }
             
