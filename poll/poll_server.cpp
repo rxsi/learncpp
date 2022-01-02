@@ -142,11 +142,11 @@ int main(){
                             fds.erase(fds.begin()+i);
                         }
                     } else {
-                        std::cout << "recv from client: " << buf << ", clientfd: " << iter->fd << std::endl;
+                        std::cout << "recv from client: " << buf << ", clientfd: " << fds[i].fd << std::endl;
                         ++i;
                     }
                 }
-            } else if (iter->revents & POLLERR){
+            } else if (fds[i].revents & POLLERR){
                 ++i;
                 //TODO: 暂不处理
             }
