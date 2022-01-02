@@ -153,10 +153,9 @@ int main(){
                 ++i;
             }
         }
-
-        for (auto& clientfd : fds){
-            close(clientfd.fd);
-        }
-        return 0;
     }
+    for (auto& clientfd : fds){
+        close(clientfd.fd);
+    }
+    return 0;
 }
