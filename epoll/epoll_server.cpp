@@ -103,6 +103,10 @@ int main(){
 
         // 返回值: 0 : 超时, -1 : 失败, > 0 : 有事件的fd数量
         n = epoll_wait(epollfd, epoll_events, 1024, 1000);
+        for (size_t i = 0; i < epoll_events.size(); ++i){
+            std::cout << epoll_events[i].data.fd << " ";
+        }
+        std::cout << std::endl;
         if (n < 0){
             // 被信号中断
             if (errno == EINTR)
