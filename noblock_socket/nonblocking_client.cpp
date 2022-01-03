@@ -12,6 +12,32 @@
 #define SERVER_PORT 3000
 #define SEND_DATA "hello_world"
 
+bool SendData(int fd, const char* buf, int buf_len, int flag = 0){
+    int send_len = 0;
+    int ret = 0;
+    while (true){
+        ret = send(fd, buf + send_len, buf_len - send_len, flag);
+        if (ret == -1){
+            if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN){
+                std::cout << "TCP Window size is too small or interrupted by single" << std::endl;
+                continue;
+            } else{
+                std::cout << "send data error." << std::endl;
+                return false;
+            }
+        } else if (ret == 0){
+            std::cout << "send data error." << std::endl;
+            return false;
+        }
+        send_len += ret;
+        if (send_len == buf_len){
+            return true;
+        } else {
+            return false; 
+        }
+    }
+}
+
 int main(){
     int clientfd = socket(AF_INET, SOCK_STREAM, 0);
     if (clientfd == -1){
@@ -49,25 +75,12 @@ int main(){
         // 这里是非阻塞模式: 返回-1 且错误码等于 EWOULDBLOCK: 对端的TCP接收窗口太小,暂时无法发送出去
         // 错误码等于EINTR,被信号中断,可以直接重试
         // 其他错误码出错
-        int ret = send(clientfd, SEND_DATA, strlen(SEND_DATA), 0);
-        if (ret == -1){
-            if (errno == EWOULDBLOCK){
-                std::cout << "send data error as TCP Window size is too small." << std::endl;
-                continue;
-            } else if (errno == EINTR){
-                std::cout << "sending data interrupted by signal." << std::endl;
-                continue;
-            } else{
-                std::cout << "send data error." << std::endl;
-                break;
-            }
-        } else if (ret == 0){
-            std::cout << "send data error." << std::endl;
-            close(clientfd);
-            break;
-        } else if(ret == strlen(SEND_DATA)){ // 这种方法不推荐,应该采用记录偏移量而循环发送,直至发送的所有数据长度等于strlen(SEND_DATA)
+        if (SendData(clientfd, SEND_DATA, strlen(SEND_DATA, 0))){
             count++;
             std::cout << "send data successfully, count = " << count << std::endl;
+        } else {
+            std::cout << "send data error." << std::endl;
+            break;
         }
     }
     close(clientfd);

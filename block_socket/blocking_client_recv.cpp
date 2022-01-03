@@ -29,11 +29,11 @@ int main(){
         return -1;
     }
 
-    std::vector<char> recvbuf(32, 0); //使用vector<char>作为缓冲区,更好控制.
+    char buf[32] = {0}; 
     // 参数1: int fd: 可接收数据的fd
     // 参数2: buf: char类型数组,或者vector<char>
     // 参数3: 控制参数,一般为0
-    int ret = recv(clientfd, &recvbuf, recvbuf.size(), 0); // 当没有接收到数据时,会阻塞在这里
+    int ret = recv(clientfd, buf, 32, 0); // 当没有接收到数据时,会阻塞在这里
 
     if (ret > 0){
         std::cout << "recv successfully." << std::endl;

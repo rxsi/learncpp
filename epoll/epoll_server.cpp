@@ -139,6 +139,8 @@ int main(){
                             client_fd_event.events = EPOLLIN;
                             // 若取消注释这一行，则使用ET模式
                             // client_fd_event.events |= EPOLLET;
+                            // 默认是LT模式,即有数据可读时总是返回EPOLLIN
+                            // 使用ET模式,则只有当有新数据输入时才会有事件,因此需要我们使用循环一直读取数据直到触发返回-1,且错误码为EWOULDBLOCK
                             if (epoll_ctl(epollfd, EPOLL_CTL_ADD, clientfd, &client_fd_event) != INVALID_FD){
                                 std::cout << "new client accepted, clientfd: " << clientfd << std::endl;                            
                             } else {

@@ -38,12 +38,8 @@ int main(){
     }
 
     while (true){
-        std::vector<char> recvbuf(32, 0); //使用vector<char>作为缓冲区,更好控制.
-        // 返回值: >0 表示接收到了数据
-        // -1 && (errno == EWOULDBLOCK || errno == EAGAIN),没有数据接收,对端没有发送数据过来
-        // -1 && errno == EINTR , 被打断,继续执行即可.
-        // 0 对端关闭了socket
-        int ret = recv(clientfd, &recvbuf, recvbuf.size(), 0); 
+        char recvbuf[32] = {0}; 
+        int ret = recv(clientfd, recvbuf, 32, 0); 
         if (ret > 0){
             std::cout << "recv successfully." << std::endl;
         } else if (ret == 0){ // 这里当收到0时表示了关闭了socket,那么如果对端发送0字节呢???
@@ -56,10 +52,8 @@ int main(){
             std::cout << "peer close the socket." << std::endl;
             break;
         } else if (ret == -1){
-            if (errno == EWOULDBLOCK){
-                std::cout << "There is no data avaliable now." << std::endl;
-            } else if (errno == EINTR){
-                std::cout << "recv datainterrupted by signal." << std::endl;
+            if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK){
+                std::cout << "There is no data avaliable now or interrupted" << std::endl;
             } else{
                 break;
             }
