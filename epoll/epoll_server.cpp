@@ -157,7 +157,7 @@ int main(){
                             close(epoll_events[i].data.fd);
                         }
                     } else {
-                        std::cout << "recv from client: " << buf << ", clientfd: " << fds[i].fd << std::endl;
+                        std::cout << "recv from client: " << buf << ", clientfd: " << epoll_events[i].data.fd << std::endl;
                     }
                 }
             } else if (epoll_events[i].events & EPOLLERR){
