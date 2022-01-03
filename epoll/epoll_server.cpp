@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/epoll.h>
 #include <poll.h>
 #include <iostream>
 #include <string.h>
@@ -54,42 +55,54 @@ int main(){
         return INVALID_FD;
     }
 
-    std::vector<pollfd> fds; // 如果只是创建一个，那么不需要使用vector，直接使用一个pollfd即可
-    pollfd listen_fd_info;
-    listen_fd_info.fd = listenfd;
-    listen_fd_info.events = POLLIN; // 所要监听的事件是读事件
-    listen_fd_info.revents = 0;
-    fds.push_back(listen_fd_info);
+    // 创建一个epollfd，使用epoll_create(int size)
+    // 这个size值只需要填入大于0的值即可
+    int epollfd = epoll_create(1);
+    if (epollfd == -1){
+        std::cout << "create epollfd error." << std::endl;
+        close(listenfd);
+        return INVALID_FD;
+    }
+
+    epoll_event listen_fd_event;
+    listen_fd_event.data.fd = listenfd;
+    listen_fd_event.events = EPOLLIN;
+    // 若取消注释这一行，则使用ET模式
+    // listen_fd_event.events |= EPOLLET;
+    // 将监听socket绑定到epollfd上
+    // 参数1: int epfd : 通过epoll_create生成的epollfd
+    // 参数2: int op : 操作类型,可选值有:1) EPOLL_CTL_ADD, EPOLL_CTL_MOD, EPOLL_CTL_DEL
+    // 参数3: int fd : 要操作的fd
+    // 参数4: struct epoll_event * event : 
+    /* struct epoll_event{
+        uint32_t events; // 需要检测的fd事件标志,可选有: EPOLLIN, EPOLLERR
+        epoll_data_t data; // 用户自定义数据,本质是一个union对象,在64位操作系统中大小是8字节
+    }
+
+    typedef union epoll_data{
+        void* ptr;
+        int fd;
+        uint32_t u32;
+        uint64_t u64;
+    } epoll_data_t;
+    */
+    // 返回值: == 0 : 成功调用,-1调用失败
+    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listenfd, &listen_fd_event) == INVALID_FD){
+        std::cout << "epoll_ctl error." << std::endl;
+        close(listenfd);
+        return INVALID_FD;
+    }
 
     int n;
     while (true){
-        // 参数1：struct pollfd* fds: 指向一个pollfd结构体组成的数组
-        // 参数2：nfds_t 参数fds所指向的数组的大小, 本质是 typedef unsigned long int nfds_t;
-        // 参数3：poll函数的超时时间，单位毫秒
-        // 返回值：< 0：发生异常，需要判断是否是被中断；== 0：设定的监听时间内没有事件发生，继续循环
-        // > 0：有事件发生
-        /*
-        struct pollfd{
-            int fd;         待检测事件的fd
-            short events;   关心的事件的组合；由程序员设置，用以告诉内核我们所关心的事
-            short revents;  检测后得到的事件类型；有内核返回
-        }
-        events 和 revents的常用参数有：
-        POLLIN 数据可读
-        POLLOUT 数据可写
-        POLLERR 发生异常
+        epoll_event epoll_events[1024];
+        // 参数1: int epfd : 由epoll_create的epollfd
+        // 参数2: epoll_event结构体数组的首地址,当然如果只需要监听一个,直接传入一个epoll_event结构体的地址即可
+        // 参数3: int maxevents : 参数2的数量
+        // 参数4: int timeout : 超时时间,单位毫秒
 
-        与select相比较，有以下优点：
-        1）poll不需要传入最大文件描述符+1的值
-        2）与select相比，poll在处理大数量的文件描述符时速度更快
-        3）poll没有最大连接数限制，（select的最大连接数由内核的fd_set数据结构限制，默认是1024）
-        4）在调用poll函数时，只需要对参数进行因此设置就好
-        
-        和select一样的缺点：
-        1）不管有没有意义，大量的fds都需要在用户态和内核态之间复制拷贝
-        2）需要对所有的fds进行遍历，才能得到有事件的fd
-        */ 
-        n = poll(&fds[0], fds.size(), 1000);
+        // 返回值: 0 : 超时, -1 : 失败, > 0 : 有事件的fd数量
+        n = epoll_wait(epollfd, epoll_events, 1024, 1000);
         if (n < 0){
             // 被信号中断
             if (errno == EINTR)
@@ -101,11 +114,9 @@ int main(){
             continue;
         }
 
-        // 可见还是要遍历所有的fd，和select本质上无异
-        int i = 0;
-        while (i < fds.size()){
-            if (fds[i].revents & POLLIN){ // 发生的事件是可读事件
-                if (fds[i].fd == listenfd){
+        for (size_t i = 0; i < n; ++i){
+           if (epoll_events[i].events & EPOLLIN){ // 发生的事件是可读事件
+                if (epoll_events[i].data.fd == listenfd){
                     // 监听socket，接受新连接
                     sockaddr_in clientaddr;
                     socklen_t clientaddrlen = sizeof(clientaddr);
@@ -119,43 +130,41 @@ int main(){
                             close(clientfd);
                             std::cout << "set clientfd to nonblock error." << std::endl;
                         } else {
-                            pollfd client_fd_info;
-                            client_fd_info.fd = clientfd;
-                            client_fd_info.events = POLLIN;
-                            client_fd_info.revents = 0;
-                            fds.push_back(client_fd_info);
-                            std::cout << "new client accepted, clientfd: " << clientfd << std::endl;
+                            epoll_event client_fd_event;
+                            client_fd_event.data.fd = clientfd;
+                            client_fd_event.events = EPOLLIN;
+                            // 若取消注释这一行，则使用ET模式
+                            // client_fd_event.events |= EPOLLET;
+                            if (epoll_ctl(epollfd, EPOLL_CTL_ADD, clientfd, &client_fd_event) != INVALID_FD){
+                                std::cout << "new client accepted, clientfd: " << clientfd << std::endl;                            
+                            } else {
+                                std::cout << "add client fd to epollfd error." << std::endl;
+                                close(clientfd);
+                            }
                         }
                     }
-                    ++i;
                 } else {
                     // 普通的clientfd，收取数据
-                    // std::vector<char> buf(64); // char buf[64] = {0} 数组初始化形式区别
-                    // 使用char数组可以直接调用std::cout 输出
-                    char buf[64] = {0};
-                    int m = recv(fds[i].fd, buf, 64, 0);
+                    std::cout << "client fd: " << epoll_events[i].data.fd << " recvdata." << std::endl;
+
+                    char buf[1] = {0};
+                    int m = recv(epoll_events[i].data.fd, buf, 1, 0);
                     if (m <= 0){
                         if (errno != EINTR && errno != EWOULDBLOCK){
-                            // 书里面使用iter遍历所有连接，并检测是否等于当前当前fds[i].fd，不知为何
-                            // 出错或对端关闭了连接，关闭对应的clientfd，并设置无效标志位
-                            close(fds[i].fd);
-                            fds.erase(fds.begin()+i);
+                            if (epoll_ctl(epollfd, EPOLL_CTL_DEL, epoll_events[i].data.fd, NULL) != -1){
+                                std::cout << "client disconnected, clientfd: " << epoll_events[i].data.fd << std::endl;
+                            }
+                            close(epoll_events[i].data.fd);
                         }
                     } else {
                         std::cout << "recv from client: " << buf << ", clientfd: " << fds[i].fd << std::endl;
-                        ++i;
                     }
                 }
-            } else if (fds[i].revents & POLLERR){
-                ++i;
+            } else if (epoll_events[i].events & EPOLLERR){
                 //TODO: 暂不处理
-            } else {
-                ++i;
             }
         }
     }
-    for (auto& clientfd : fds){
-        close(clientfd.fd);
-    }
+    close(listenfd);
     return 0;
 }
