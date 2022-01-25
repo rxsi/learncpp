@@ -56,34 +56,34 @@ b. const变量可以直接在类内定义
 //     cout << n << endl;
 // }
 
-#include<iostream> 
-using namespace std; 
+// #include<iostream> 
+// using namespace std; 
 
-class Apple 
-{ 
-    int i; 
-    public:
-        Apple() 
-        { 
-            i = 0; 
-            cout << "Inside Constructor\n"; 
-        } 
-        ~Apple() 
-        { 
-            cout << "Inside Destructor\n"; 
-        } 
-}; 
+// class Apple 
+// { 
+//     int i; 
+//     public:
+//         Apple() 
+//         { 
+//             i = 0; 
+//             cout << "Inside Constructor\n"; 
+//         } 
+//         ~Apple() 
+//         { 
+//             cout << "Inside Destructor\n"; 
+//         } 
+// }; 
 
-int main() 
-{ 
-    int x = 0; 
-    if (x==0) 
-    { 
-        Apple obj; // C++ 中在if等定义的变量出了这个作用域后就会销毁,这与Python不同!!!!!!!!!    
-    } // 当Apple对象不是静态时,if调用结束立即就会调用析构函数.
-    // 当使用 static Apple obj; 则会在整个程序结束后再析构
-    cout << "End of main\n"; 
-} 
+// int main() 
+// { 
+//     int x = 0; 
+//     if (x==0) 
+//     { 
+//         Apple obj; // C++ 中在if等定义的变量出了这个作用域后就会销毁,这与Python不同!!!!!!!!!    
+//     } // 当Apple对象不是静态时,if调用结束立即就会调用析构函数.
+//     // 当使用 static Apple obj; 则会在整个程序结束后再析构
+//     cout << "End of main\n"; 
+// } 
 
 // static不能声明为virtual, const
 // 不能是virtual的原因: 因为virtual需要this指针调用,即__thiscall.而静态函数没有this指针,
@@ -91,3 +91,36 @@ int main()
 
 // 不能是const的原因: 因为const需要this指针调用,本质上,this指针是指针常量,当函数是const时,则实际上作用在this指针上,
 // 变成了指向常量的指针常量.
+
+// 同一个编译单元内，按照静态变量的构造顺序进行逆序析构
+// 但是在不同的编译单元内，顺序是不确定的
+// 因此可能出现A文件的静态方法调用了B文件中还未初始化的静态变量，
+// 解决方式是把B中的静态变量变成local static，这样做可以保证在调用时（如果未初始化就初始化）就已经是初始化好的了，且线程安全，是实现单例模式的首选项
+
+// 如果类内
+
+#include <iostream>
+#include <memory>
+
+class A
+{
+public:
+    A()
+    {
+        std::cout << "construct A" << std::endl;
+    }
+
+    ~A()
+    {
+        std::cout << "destruct A" << std::endl;
+    }
+};
+
+class B
+{
+public:
+    B()
+    {
+        std::cout << "construct B" << std::endl;
+    }
+}
