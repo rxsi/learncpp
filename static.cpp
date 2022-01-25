@@ -123,4 +123,22 @@ public:
     {
         std::cout << "construct B" << std::endl;
     }
+
+    ~B()
+    {
+        std::cout << "destruct B" << std::endl;
+    }
+
+private:
+    static std::shared_ptr<A> m_instance;
+};
+
+std::shared_ptr<A> B::m_instance = std::make_shared<A>(new A());
+
+int main()
+{
+    B b1;
+    B b2;
+    B b3;
+    return 0;
 }
