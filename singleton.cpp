@@ -160,46 +160,68 @@
 // CRTP 奇异递归模板,即派生类作为基类的模板参数
 
 // brief: a singleton base class offering an easy way to create singleton
-#include <iostream>
+// #include <iostream>
 
-template<typename T>
-class Singleton{
+// template<typename T>
+// class Singleton{
+// public:
+//     static T& get_instance(){
+//         static T instance; // 本质上还是使用局部静态变量去实现线程安全
+//         return instance;
+//     }
+//     virtual ~Singleton(){
+//         std::cout<<"destructor called!"<<std::endl;
+//     }
+//     Singleton(const Singleton&)=delete;
+//     Singleton& operator =(const Singleton&)=delete;
+// protected:
+//     Singleton(){
+//         std::cout<<"constructor called!"<<std::endl;
+//     }
+
+// };
+// /********************************************/
+// // Example:
+// // 1.friend class declaration is requiered!
+// // 2.constructor should be private
+
+
+// class DerivedSingle:public Singleton<DerivedSingle>{
+//    // !!!! attention!!!
+//    // needs to be friend in order to
+//    // access the private constructor/destructor
+//    friend class Singleton<DerivedSingle>; // 一定要定义为友元,因为需要在模板中调用T instance,即派生类的私有构造函数
+// public:
+//    DerivedSingle(const DerivedSingle&)=delete;
+//    DerivedSingle& operator =(const DerivedSingle&)= delete;
+// private:
+//    DerivedSingle()=default;
+// };
+
+// int main(int argc, char* argv[]){
+//     DerivedSingle& instance1 = DerivedSingle::get_instance();
+//     DerivedSingle& instance2 = DerivedSingle::get_instance();
+//     return 0;
+// }
+
+class Singleton
+{
+private:
+    static Singleton instance;
+
+    Singleton();
+    ~Singleton();
+    Singleton(const Singleton&);
+    Singleton& operator=(const Singleton&);
+
 public:
-    static T& get_instance(){
-        static T instance; // 本质上还是使用局部静态变量去实现线程安全
+
+    static Singleton& getInstance()
+    {
         return instance;
     }
-    virtual ~Singleton(){
-        std::cout<<"destructor called!"<<std::endl;
-    }
-    Singleton(const Singleton&)=delete;
-    Singleton& operator =(const Singleton&)=delete;
-protected:
-    Singleton(){
-        std::cout<<"constructor called!"<<std::endl;
-    }
-
-};
-/********************************************/
-// Example:
-// 1.friend class declaration is requiered!
-// 2.constructor should be private
-
-
-class DerivedSingle:public Singleton<DerivedSingle>{
-   // !!!! attention!!!
-   // needs to be friend in order to
-   // access the private constructor/destructor
-   friend class Singleton<DerivedSingle>; // 一定要定义为友元,因为需要在模板中调用T instance,即派生类的私有构造函数
-public:
-   DerivedSingle(const DerivedSingle&)=delete;
-   DerivedSingle& operator =(const DerivedSingle&)= delete;
-private:
-   DerivedSingle()=default;
 };
 
-int main(int argc, char* argv[]){
-    DerivedSingle& instance1 = DerivedSingle::get_instance();
-    DerivedSingle& instance2 = DerivedSingle::get_instance();
-    return 0;
-}
+// initialize defaultly
+Singleton Singleton::instance; // 会在main函数之前初始化,所以没有线程竞争问题
+// 全局变量会在main函数开始之前初始化,分别是在编译阶段和其实

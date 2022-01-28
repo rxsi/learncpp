@@ -97,7 +97,6 @@ b. const变量可以直接在类内定义
 // 因此可能出现A文件的静态方法调用了B文件中还未初始化的静态变量，
 // 解决方式是把B中的静态变量变成local static，这样做可以保证在调用时（如果未初始化就初始化）就已经是初始化好的了，且线程安全，是实现单例模式的首选项
 
-// 如果类内
 
 #include <iostream>
 #include <memory>
@@ -122,18 +121,43 @@ public:
     B()
     {
         std::cout << "construct B" << std::endl;
+        // 方式4:
+        // m_count++;
     }
 
     ~B()
     {
         std::cout << "destruct B" << std::endl;
+        // m_instance->~A(); // 不能单存的直接调用A的析构函数,因为实际上
+
+        // 方式4:
+        // m_count--;
+        // if (m_count == 0)
+        // {
+        //     delete m_instance;
+        //     m_instance = nullptr;
+        // }
     }
 
 private:
-    static std::shared_ptr<A> m_instance;
+    // static A m_instance; 方式1:静态对象会在main函数退出之后被自动析构(不管析构函数是否是private)
+    // static A* m_instance; 方式2:如果是静态指针,那么不会被自动析构,会造成内存泄漏
+    // static std::shared_ptr<A> m_instance; // 方式3:使用智能指针,可以正确析构
+
+    // 方式4: 使用计数,每创建一个新对象就+1,析构一个对象就-1,当为0时析构掉A对象
+    // static int m_count;
+    // static A* m_instance;
 };
 
-std::shared_ptr<A> B::m_instance = std::make_shared<A>(new A());
+// A B::m_instance = A(); 方式1:
+// A* B::m_instance = new A(); 方式2:
+// std::shared_ptr<A> B::m_instance = std::make_shared<A>();方式3:
+
+// 方式4:
+// int B::m_count = 0;
+// A* B::m_instance = new A();
+
+// 方式5,使用RAII规则,将静态指针变为B中某个静态内部类的属性,然后当这个静态内部类被析构时,在析构函数中析构掉A对象
 
 int main()
 {
