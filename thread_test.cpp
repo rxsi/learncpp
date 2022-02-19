@@ -72,36 +72,74 @@
 //     return 0;
 // }
 
-#include <atomic>
-#include <thread>
-#include <assert.h>
-#include <vector>
-#include <iostream>
 
-// std::atomic<int> cnt = 0; 这种初始化方式报错, atomic(const atomic&) = delete;即禁止拷贝构造
-std::atomic<int> cnt(0);
 
-void f()
-{
-    for (int n = 0; n < 1000; ++n)
-    {
-        cnt.fetch_add(1, std::memory_order_relaxed); // memory_order_relaxed只保证当前语句的原子性,不保证其他store\load之间的顺序
-    }
-}
+/*
+memory_order_releaxed：
+不保证变量间的执行顺序，只保证当前变量的store/load的原子性
+因此适用于当个变量的原子性保证。
+应用场景：程序计数器
+*/
+// #include <atomic>
+// #include <thread>
+// #include <assert.h>
+// #include <vector>
+// #include <iostream>
 
-int main()
-{
-    std::vector<std::thread> v;
-    for (int n = 0; n < 10; ++n)
-    {
-        v.emplace_back(f);
-    }
+// // std::atomic<int> cnt = 0; 这种初始化方式报错, atomic(const atomic&) = delete;即禁止拷贝构造
+// std::atomic<int> cnt(0); // 这种是直接初始化，调用的是类对应的有参构造函数
+// // int cnt; // 这种是默认初始化，对于函数之外的内置变量初始化值为0,多线程同时修改时线程不安全
 
-    for (auto& t : v)
-    {
-        t.join();
-    }
+// void f()
+// {
+//     for (int n = 0; n < 1000; ++n)
+//     {
+//         cnt++; // 这也是保证了原子性，因为atomic有重载operator++ 和 operator--，但是默认的内存序是 memory_order_seq_cst（最严格），在此处只需要保证当前++操作的原子性，因此使用memory_order_relaxed即可
+//         // cnt.fetch_add(1, std::memory_order_relaxed); // memory_order_relaxed只保证当前语句的原子性,不保证其他store\load之间的顺序
+//     }
+// }
 
-    assert(cnt == 10000);
-    return 0;
-}
+// int main()
+// {
+//     std::vector<std::thread> v;
+//     for (int n = 0; n < 10; ++n)
+//     {
+//         v.emplace_back(f);
+//     }
+
+//     for (auto& t : v)
+//     {
+//         t.join();
+//     }
+//     assert(cnt == 10000);
+//     return 0;
+// }
+
+/*
+memory_order_consume：
+影响load行为（将值读取到寄存器），处于当前变量的load行为之后的且与当前变量相关的读取行为不会被优化到在该语句之前执行
+p = ptr.load(std::memory_order_consume);
+p += 1; // 次语句永远只会在load之后再执行
+a = 123; // 有可能会优化到load之前
+*/
+
+/*
+memory_order_acquire：
+影响load行为，处于当前变量的load行为之后的所有与内存相关的操作都不会被优化到该变量之前执行
+p = ptr.load(std::memory_order_acquire);
+p += 1; // 不会优化到load之前
+a = 123; // 不会优化到load之前
+*/
+
+/*
+memory_order_release：
+影响store行为，处于当前store行为之前的所有与内存相关的操作都不会优化到该store行为之后
+std::string* p = new std::string("hello"); // 不会优化到store之后执行
+data = 33; // 不会优化到store之后执行
+ptr.store(p, std::memory_order_release);
+*/
+
+/*
+memory_order_acq_rel：
+
+*/
