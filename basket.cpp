@@ -25,11 +25,6 @@ public:
         return bookNo;
     }
 
-    const int getA()
-    {
-        return price;
-    }
-
     virtual double net_price(std::size_t n) const {return n * price;}
     virtual ~Quote() = default; // 虚析构函数，使用多态的时候，会从子类到父类逐个调用
 
@@ -43,6 +38,16 @@ public:
     {
         std::cout <<"&& " << std::endl;
         return new Quote(std::move(*this));
+    }
+
+    const double& GetPrice() // 如果返回的是 int&，返回的price是一个临时变量，因为还要类型转换为int，因此会报错。
+    {
+        return price;
+    }
+
+    const std::string& GetBookNo()
+    {
+        return bookNo;
     }
 
 private:
@@ -114,6 +119,16 @@ double print_total(std::ostream &os, const Quote &item, size_t n)
     return ret;
 }
 
+int num = 10;
+const int GetA()
+{
+    return num;
+}
+
+const int& GetB()
+{
+    return num;
+}
 
 int main()
 {
@@ -123,6 +138,23 @@ int main()
 
     bsk.add_item(std::move(q));
 
-    int num = q.getA();
-    std::cout << "get num = " << num << std::endl;
+    int a = GetA();
+    std::cout << "get a = " << a << std::endl;
+    a = 20;
+    std::cout << "get a = " << a << std::endl;
+
+    int b = GetB(); // 这里虽然GetB返回的是const引用，但是因为这种形式是拷贝复制，因此b得到的只是副本而不是引用，因此 int b 和 const int b都可以
+    std::cout << "get b = " << b << std::endl;
+    b = 30;
+    std::cout << "get b = " << b << std::endl;
+    
+    const int& b2 = GetB(); // 使用引用去接数据时，则必须使用 const int&
+    std::cout << "get c = " << b2 << std::endl;
+
+    std::cout << q.GetPrice() << "  " << q.GetBookNo() << std::endl;
 }
+/*
+引用说明：
+1. 不要引用临时变量，比如GetA返回的就是一个临时变量，如果使用引用去接，会报错，或者
+
+*/
