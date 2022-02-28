@@ -25,6 +25,11 @@ public:
         return bookNo;
     }
 
+    const int getA()
+    {
+        return price;
+    }
+
     virtual double net_price(std::size_t n) const {return n * price;}
     virtual ~Quote() = default; // 虚析构函数，使用多态的时候，会从子类到父类逐个调用
 
@@ -117,4 +122,7 @@ int main()
     bsk.add_item(q);
 
     bsk.add_item(std::move(q));
+
+    int num = q.getA();
+    std::cout << "get num = " << num << std::endl;
 }
