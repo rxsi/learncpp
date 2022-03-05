@@ -15,7 +15,7 @@ public:
     // 如果参数是 std::string &book 则我们还可以对传入的book引用进行修改，编程规范不允许这样做，会有风险。
     // double sale_price 直接传入的是值，因此实际上会有拷贝的发生。
     Quote(const std::string &book, double sales_price): 
-        bookNo(book), price(sales_price) {} 
+        bookNo(book), price(sales_price), c(222) {} 
     // 函数后面加const表示本函数不会在内部修改对象，比方说，加了const之后，bookNo = "123"将会报错;也隐式的将this指针定义为了const类型，不允许通过this指针修改内部数据,如this->bookNo = "123";
     // 函数前加const表示返回的是const类型的数据，外部接收者不能修改接收的值
     // 但是如果返回的是普通值，即非指针或引用，如 std::string s = b.isbn(); s ="123"; 这样依然是可以的，因为s.isbn()返回的是一个临时变量（右值），赋值完就销毁了。无关是否是const
@@ -50,10 +50,30 @@ public:
         return bookNo;
     }
 
+    std::string getS()
+    {
+        return s1;
+    }
+
+    int getC()
+    {
+        return c;
+    }
+
+    int getD()
+    {
+        return d;
+    }
+
+
 private:
     // 当将变量定义为const时，要么定义时就初始化，即const int a = 1; 要么就要在构造函数中显式的进行初始化构造如 Quote(xxx): a(1){}
     // 而且内置类型数据不会默认初始化，如const std::string bookNo;会被默认初始化为空，但是const int a;不会初始化，这是兼容C语言的原因
     std::string bookNo; 
+
+    const std::string s1;
+    const int c = 111;
+    int d;
 
 protected:
     double price = 0.0;
@@ -152,6 +172,8 @@ int main()
     std::cout << "get c = " << b2 << std::endl;
 
     std::cout << q.GetPrice() << "  " << q.GetBookNo() << std::endl;
+
+    std::cout << "get = " << q.getC() << q.getS() << q.getD() << std::endl; // 
 }
 /*
 引用说明：
@@ -159,7 +181,5 @@ int main()
 2. 最好不要返回函数内部new的对象，不合规范
 3. 可以返回类内的变量或者全局变量的引用，但是注意，返回的引用类型要一致，否则会因为将要发生类型转换而导致实际
 返回的值是临时变量，从而编译报错
-
-1. 不要引用临时变量，比如GetA返回的就是一个临时变量，如果使用引用去接，会报错，或者
 
 */
