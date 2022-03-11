@@ -205,7 +205,6 @@ int main(){
         myPriorityQueue6.emplace(i, i+1);
     }
     std::cout << "priority_queue6 x = " << myPriorityQueue6.top().x << ", second = " << myPriorityQueue6.top().y << std::endl;
-    myPriorityQueue6.
 
 
     // std::vector<Node> myVector;
