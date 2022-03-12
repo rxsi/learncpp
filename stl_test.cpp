@@ -24,6 +24,7 @@ stl容器
 #include <queue>
 #include <stack>
 #include <memory>
+#include <forward_list>
 using namespace std;
 
 
@@ -180,31 +181,31 @@ int main(){
     // std::cout << "myQueue2_size: " << myQueue2.size() << std::endl;
 
     // priority_queue默认的排序规则是大顶堆,即less比较方法,即首元素是最大值
-    std::priority_queue<int> myPriorityQueue; // 初始化方式1:默认初始化
+    // std::priority_queue<int> myPriorityQueue; // 初始化方式1:默认初始化
 
-    std::vector<int> myVector{1, 2, 3};
-    std::priority_queue<int> myPriorityQueue2(myVector.begin(), myVector.end()); // 初始化方式2:传入两个iterator, 因为默认是vector所以传入数组指针也是可以的
+    // std::vector<int> myVector{1, 2, 3};
+    // std::priority_queue<int> myPriorityQueue2(myVector.begin(), myVector.end()); // 初始化方式2:传入两个iterator, 因为默认是vector所以传入数组指针也是可以的
 
-    std::priority_queue<int> myPriorityQueue3(std::less<int>(), myVector); // 可以通过指定比较函数的方式,直接把容器传进来
-    std::priority_queue<int, std::vector<int>, std::greater<int>> myPriorityQueue4(std::greater<int>(), myVector); // 默认是less,要修改为greater则需要把所有的参数都列出来
+    // std::priority_queue<int> myPriorityQueue3(std::less<int>(), myVector); // 可以通过指定比较函数的方式,直接把容器传进来
+    // std::priority_queue<int, std::vector<int>, std::greater<int>> myPriorityQueue4(std::greater<int>(), myVector); // 默认是less,要修改为greater则需要把所有的参数都列出来
 
-    // 关于pair的比较,默认会先比较元素1, 再比较元素2
-    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, std::less<pair<int, int>>> myPriorityQueue5;
-    for (int i = 0; i < 5; i++)
-    {
-        // myPriorityQueue5.push(pair<int, int>(i, i+1));
-        myPriorityQueue5.emplace(i, i+1); // 使用emplace时只需要传入类型的参数,如果直接传入pair<int, int>(i, i+1)则实际和push没有差别
-    }
+    // // 关于pair的比较,默认会先比较元素1, 再比较元素2
+    // std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, std::less<pair<int, int>>> myPriorityQueue5;
+    // for (int i = 0; i < 5; i++)
+    // {
+    //     // myPriorityQueue5.push(pair<int, int>(i, i+1));
+    //     myPriorityQueue5.emplace(i, i+1); // 使用emplace时只需要传入类型的参数,如果直接传入pair<int, int>(i, i+1)则实际和push没有差别
+    // }
 
-    std::cout << "priority_queue_size = " << myPriorityQueue5.size() << std::endl;
-    std::cout << "priority_queue x = " << myPriorityQueue5.top().first << ", second = " << myPriorityQueue5.top().second << std::endl;
-    // 自定义排序比较
-    std::priority_queue<Node, std::vector<Node>, myCompare> myPriorityQueue6;
-    for (int i = 0; i < 5; i++)
-    {
-        myPriorityQueue6.emplace(i, i+1);
-    }
-    std::cout << "priority_queue6 x = " << myPriorityQueue6.top().x << ", second = " << myPriorityQueue6.top().y << std::endl;
+    // std::cout << "priority_queue_size = " << myPriorityQueue5.size() << std::endl;
+    // std::cout << "priority_queue x = " << myPriorityQueue5.top().first << ", second = " << myPriorityQueue5.top().second << std::endl;
+    // // 自定义排序比较
+    // std::priority_queue<Node, std::vector<Node>, myCompare> myPriorityQueue6;
+    // for (int i = 0; i < 5; i++)
+    // {
+    //     myPriorityQueue6.emplace(i, i+1);
+    // }
+    // std::cout << "priority_queue6 x = " << myPriorityQueue6.top().x << ", second = " << myPriorityQueue6.top().y << std::endl;
 
 
     // std::vector<Node> myVector;
@@ -231,5 +232,13 @@ int main(){
     // auto spNode = *myVector.begin();
     // std::cout << "spNode x = " << spNode->x << ", y = " << spNode->y << std::endl;
     // std::cout << "begin x = " << (*myVector.begin())->x << ", y = " << (*myVector.begin())->y << std::endl;
+    
+    // 单向链表,
+    // std::forward_list<int> myFowrardList;
+    // std::forward_list<int> myFowrardList2{1, 2, 3, 4, 5};
+    // int val = myFowrardList2.front();
+    // std::cout << "val = " << val << std::endl;
+    // int val2 = *(++myFowrardList2.begin()); // forward_list 有重载operator++方法,但是不能 .begin() + 1
+    // std::cout << "val2 = " << val2 << std::endl;
 
 } 
