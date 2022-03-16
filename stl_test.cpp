@@ -25,6 +25,8 @@ stl容器
 #include <stack>
 #include <memory>
 #include <forward_list>
+#include <set>
+#include <map>
 using namespace std;
 
 
@@ -241,4 +243,31 @@ int main(){
     // int val2 = *(++myFowrardList2.begin()); // forward_list 有重载operator++方法,但是不能 .begin() + 1
     // std::cout << "val2 = " << val2 << std::endl;
 
+    // std::set<int> mySet;
+    // for (int i = 10; i >= 0; --i)
+    // {
+    //     mySet.insert(i);
+    // }
+
+    // for (auto& m: mySet)
+    // {
+    //     std::cout << "m = " << m << std::endl;
+    // }
+    
+    // std::map<int, int> myMap;
+    // int num = myMap[0];
+    // num = 1;
+    // std::cout << "maMap[0] = " << myMap[0] << std::endl;
+
+    // int a = 100;
+    // int& b = a;
+    // b = 200;
+    // std::cout << "b = " << b << std::endl;
+
+    // vector<bool> myVec(1);
+    // std::cout << "vec = " << *myVec.begin() << std::endl;
+
+    string s1 = "abcd";
+    string s2 = "abcd";
+    std::cout << (s1 == s2) << std::endl;
 } 
