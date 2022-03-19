@@ -590,7 +590,7 @@ int pthread_cond_broadcast(pthread_cond_t* cond); // 同时唤醒所有的线程
 
 //         pthread_mutex_unlock(&mymutex);
 
-//         if (pTask == NULL);
+//         if (pTask == NULL)
 //             continue;
 
 //         pTask->doTask();
@@ -817,144 +817,354 @@ unique_lock(写锁) 和 shared_lock(读锁) 用来以RAII方式自动对std::sha
 
 */
 
-#define READER_THREAD_COUNT 8
-#define LOOP_COUNT 5000000
+// #define READER_THREAD_COUNT 8
+// #define LOOP_COUNT 5000000
 
-#include <iostream>
-#include <mutex> // 互斥体
-#include <shared_mutex> // 共享互斥体
-#include <thread>
+// #include <iostream>
+// #include <mutex> // 互斥体
+// #include <shared_mutex> // 共享互斥体
+// #include <thread>
 
-class shared_mutex_counter
-{
-public:
-    shared_mutex_counter() = default;
-    ~shared_mutex_counter() = default;
+// class shared_mutex_counter
+// {
+// public:
+//     shared_mutex_counter() = default;
+//     ~shared_mutex_counter() = default;
 
-    unsigned int get() const
-    {
-        std::shared_lock<std::shared_mutex> lock(m_mutex); // 共享锁
-        return m_value;
-    }
+//     unsigned int get() const
+//     {
+//         std::shared_lock<std::shared_mutex> lock(m_mutex); // 共享锁
+//         return m_value;
+//     }
 
-    void increment()
-    {
-        std::unique_lock<std::shared_mutex> lock(m_mutex); // 排他锁
-        m_value++;
-    }
+//     void increment()
+//     {
+//         std::unique_lock<std::shared_mutex> lock(m_mutex); // 排他锁
+//         m_value++;
+//     }
 
-    void reset()
-    {
-        std::unique_lock<std::shared_mutex> lock(m_mutex);
-        m_value = 0;
-    }
+//     void reset()
+//     {
+//         std::unique_lock<std::shared_mutex> lock(m_mutex);
+//         m_value = 0;
+//     }
 
-private:
-    mutable std::shared_mutex m_mutex;
-    unsigned int m_value = 0;
-};
+// private:
+//     mutable std::shared_mutex m_mutex;
+//     unsigned int m_value = 0;
+// };
 
 
-class mutex_counter
-{
-public:
-    mutex_counter() = default;
-    ~mutex_counter() = default;
+// class mutex_counter
+// {
+// public:
+//     mutex_counter() = default;
+//     ~mutex_counter() = default;
 
-    unsigned int get() const
-    {
-        std::unique_lock<std::mutex> lock(m_mutex); // 互斥体,相当于排他锁
-        return m_value;
-    }
+//     unsigned int get() const
+//     {
+//         std::unique_lock<std::mutex> lock(m_mutex); // 互斥体,相当于排他锁
+//         return m_value;
+//     }
 
-    void increment()
-    {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        m_value++;
-    }
+//     void increment()
+//     {
+//         std::unique_lock<std::mutex> lock(m_mutex);
+//         m_value++;
+//     }
 
-    void reset()
-    {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        m_value = 0;
-    }
+//     void reset()
+//     {
+//         std::unique_lock<std::mutex> lock(m_mutex);
+//         m_value = 0;
+//     }
 
-private:
-    mutable std::mutex m_mutex;
-    unsigned int m_value = 0;
-};
+// private:
+//     mutable std::mutex m_mutex;
+//     unsigned int m_value = 0;
+// };
 
-void test_shared_mutex()
-{
-    shared_mutex_counter counter;
-    int temp;
+// void test_shared_mutex()
+// {
+//     shared_mutex_counter counter;
+//     int temp;
 
-    // 写线程函数
-    auto writer = [&counter]() {
-        for (int i = 0; i < LOOP_COUNT; i++)
-            counter.increment();
-    };
+//     // 写线程函数
+//     auto writer = [&counter]() {
+//         for (int i = 0; i < LOOP_COUNT; i++)
+//             counter.increment();
+//     };
 
-    // 读线程函数
-    auto reader = [&counter, &temp]() {
-        for (int i = 0; i < LOOP_COUNT; i++)
-            temp = counter.get();
-    };
+//     // 读线程函数
+//     auto reader = [&counter, &temp]() {
+//         for (int i = 0; i < LOOP_COUNT; i++)
+//             temp = counter.get();
+//     };
 
-    // 存放读线程对象指针的数组
-    std::thread** tarray = new std::thread* [READER_THREAD_COUNT];
+//     // 存放读线程对象指针的数组
+//     std::thread** tarray = new std::thread* [READER_THREAD_COUNT];
     
-    clock_t start = clock();
-    for (int i = 0; i < READER_THREAD_COUNT; i++)
-        tarray[i] = new std::thread(reader);
+//     clock_t start = clock();
+//     for (int i = 0; i < READER_THREAD_COUNT; i++)
+//         tarray[i] = new std::thread(reader);
 
-    std::thread tw(writer);
-    for (int i = 0; i < READER_THREAD_COUNT; i++)
-        tarray[i]->join();
+//     std::thread tw(writer);
+//     for (int i = 0; i < READER_THREAD_COUNT; i++)
+//         tarray[i]->join();
     
-    tw.join();
+//     tw.join();
 
-    clock_t end = clock();
-    std::cout << "[test_shared_mutex]" << std::endl;
-    std::cout << "thread count: " << READER_THREAD_COUNT << std::endl;
-    std::cout << "result: " << counter.get() << ", cost: " << end - start << ", temp: " << temp << std::endl;
-}
+//     clock_t end = clock();
+//     std::cout << "[test_shared_mutex]" << std::endl;
+//     std::cout << "thread count: " << READER_THREAD_COUNT << std::endl;
+//     std::cout << "result: " << counter.get() << ", cost: " << end - start << ", temp: " << temp << std::endl;
+// }
 
-void test_mutex()
+// void test_mutex()
+// {
+//     mutex_counter counter;
+//     int temp;
+//     auto writer = [&counter]() {
+//         for (int i = 0; i < LOOP_COUNT; i++)
+//             counter.increment();
+//     };
+
+//     auto reader = [&counter, &temp]() {
+//         for (int i = 0; i < LOOP_COUNT; i++)
+//             temp = counter.get();
+//     };
+
+//     std::thread** tarray = new std::thread* [READER_THREAD_COUNT];
+//     clock_t start = clock();
+//     for (int i = 0; i < READER_THREAD_COUNT; i++)
+//         tarray[i] = new std::thread(reader);
+
+//     std::thread tw(writer);
+//     for (int i = 0; i < READER_THREAD_COUNT; i++)
+//         tarray[i]->join();
+
+//     tw.join();
+//     clock_t end = clock();
+//     std::cout << "[test_mutex]" << std::endl;
+//     std::cout << "thread count: " << READER_THREAD_COUNT << std::endl;
+//     std::cout << "result: " << counter.get() << ", cost: " << end - start << ", temp: " << temp << std::endl;
+// }
+
+// int main()
+// {
+//     test_mutex();
+//     // test_shared_mutex();
+//     return 0;
+// }
+
+// // g++ -g -o thread_test thread_test.cpp -lpthread -std=c++17
+
+/*
+std::condition_variable
+条件变量
+*/
+
+// #include <thread>
+// #include <mutex>
+// #include <condition_variable>
+// #include <list>
+// #include <iostream>
+
+// class Task
+// {
+// public:
+//     Task(int myTaskID): taskID(myTaskID){}
+
+//     void doTask()
+//     {
+//         std::cout << "handle a task, taskID: " << taskID << ", threadID: " << pthread_self() << std::endl;
+//     }
+
+// private:
+//     int taskID;
+// };
+
+// // pthread_mutex_t mymutex; linux平台代码
+// std::mutex mymutex; // C++代码,可以同时兼容linux 和 windows
+// std::list<Task*> tasks;
+// // pthread_cond_t mycv; linux平台代码
+// std::condition_variable mycv;
+
+// void* consumer_thread()
+// {
+//     Task* pTask = NULL;
+//     while (true)
+//     {
+//         // pthread_mutex_lock(&mymutex); 为了配合 pthread_cond_wait方法,需要提前加锁
+//         // // 这里使用while的原因是可能会被虚假唤醒，因此当wait被唤醒之后，还需要判断tasks是否为空
+//         // while (tasks.empty())
+//         //     // 如果获得了互斥锁，但是条件不合适，则pthread_cond_wait 会释放锁，不往下执行，所以在这语句之前有lock的操作
+//         //     // 发生变化后，如果条件合适，则pthread_cond_wait会阻塞到获得锁，所以在这语句之后有unlock的操作
+//         //     pthread_cond_wait(&mycv, &mymutex);
+
+
+//         // pTask = tasks.front();
+//         // tasks.pop_front();
+
+//         // pthread_mutex_unlock(&mymutex); 然后手动解锁
+
+//         {
+//             std::unique_lock<std::mutex> guard(mymutex); // c++的是使用RAII封装,因此使用时需要限定使用范围,以达到退出范围时自动释放的功能
+//             while (tasks.empty())
+//             {
+//                 mycv.wait(guard);
+//             }
+//             pTask = tasks.front();
+//             tasks.pop_front();
+//         }
+//         if (pTask == NULL)
+//             continue;
+
+//         pTask->doTask();
+//         delete pTask;
+//         pTask = NULL;
+//     }
+
+//     return NULL;
+// }
+
+// void* producer_thread()
+// {
+//     int taskID = 0;
+//     Task* pTask = NULL;
+
+//     while (true)
+//     {
+//         pTask = new Task(taskID);
+//         // pthread_mutex_lock(&mymutex); // 这里加锁是为了操作tasks时不会有脏数据,和上面为了wait而加的锁有本质区别
+//         // tasks.push_back(pTask);
+//         // std::cout << "produce a task, taskID: " << taskID << ", threadID: " << pthread_self() << std::endl;
+//         // pthread_mutex_unlock(&mymutex); 
+
+//         // pthread_cond_signal(&mycv); // 发出信号
+//         // taskID++;
+//         // sleep(1); // 线程休眠
+
+//         { // 使用{}减小作用范围
+//             std::lock_guard<std::mutex> guard(mymutex); // 注意mymutex的生命周期要大于guard!!!!!!!!!!!!!!
+//             tasks.push_back(pTask);
+//             std::cout << "produce a task, taskID: " << taskID << ", threadID: " << pthread_self() << std::endl;
+//         }
+//         std::cout << "is empty = " << tasks.empty() << std::endl;
+//         mycv.notify_one(); // 发出信号
+//         taskID++;
+//         std::this_thread::sleep_for(std::chrono::seconds(1));
+//     }
+//     return NULL;
+// }
+
+// int main()
+// {
+//     // pthread_mutex_init(&mymutex, NULL); // 用以保证tasks列表操作的安全性
+//     // pthread_cond_init(&mycv, NULL); // C++不用显式的初始化
+
+//     // 五个消费线程
+//     // pthread_t consumerThreadID[5];
+//     std::thread consumerThreadID[5];
+//     for (int i = 0; i < 5; i++)
+//         consumerThreadID[i] = std::thread(consumer_thread);
+//         // pthread_create(&consumerThreadID[i], NULL, consumer_thread, NULL);
+
+//     // 一个生产者线程
+//     // pthread_t producerThreadID;
+//     // pthread_create(&producerThreadID, NULL, producer_thread, NULL);
+//     std::thread producer(producer_thread);
+
+//     producer.join();
+    
+//     // pthread_join(producerThreadID, NULL);
+
+//     for (int i = 0; i < 5; ++i)
+//         consumerThreadID[i].join();
+//         // pthread_join(consumerThreadID[i], NULL);
+
+//     // pthread_cond_destroy(&mycv);
+//     // pthread_mutex_destroy(&mymutex); C++不用显式销毁
+
+
+//     return 0;
+// }
+
+
+/*
+条件变量的应用:确保线程启动成功
+*/
+
+// #include <thread>
+// #include <mutex>
+// #include <condition_variable>
+// #include <iostream>
+// #include <vector>
+// #include <memory>
+
+// std::mutex mymutex;
+// std::condition_variable mycv;
+// bool success = false;
+
+
+// void thread_func(int no)
+// {
+//     {
+//         std::unique_lock<std::mutex> lock(mymutex); 
+//         success = true; // 逻辑跑到这里说明线程已经被创建成功
+//         mycv.notify_all();
+//     }
+//     std::cout << "thread create success, thread no: " << no << std::endl;
+//     while (true); // 简单死循环模拟
+// }
+
+// int main()
+// {
+//     std::vector<std::shared_ptr<std::thread>> threads;
+//     for (int i = 0; i < 5; ++i)
+//     {
+//         success = false;
+//         // std::shared_ptr<std::thread> spthread;
+//         // spthread.reset(new std::thread(thread_func, i));
+//         auto spthread = std::make_shared<std::thread>(thread_func, i);
+//         {
+//             std::unique_lock<std::mutex> lock(mymutex);
+//             while (!success)
+//                 mycv.wait(lock); // 虽然这里在未接收到信号时会释放锁,但是该锁并不会被本线程获取到,因此本线程会一直阻塞在这里
+//         }
+//         std::cout << "start thread success: thread no: " << i << std::endl;
+//         threads.emplace_back(spthread);
+//     }
+
+//     for (auto& iter: threads)
+//         iter->join();
+
+//     return 0;
+// }
+
+/*
+线程局部存储
+linux:
+1. 
+int pthread_key_create(pthread_key_t* key, void (*destructor)(void*)); 
+destructor是自定义函数指针,函数签名如下:
+void* destructor(void* value)
 {
-    mutex_counter counter;
-    int temp;
-    auto writer = [&counter]() {
-        for (int i = 0; i < LOOP_COUNT; i++)
-            counter.increment();
-    };
-
-    auto reader = [&counter, &temp]() {
-        for (int i = 0; i < LOOP_COUNT; i++)
-            temp = counter.get();
-    };
-
-    std::thread** tarray = new std::thread* [READER_THREAD_COUNT];
-    clock_t start = clock();
-    for (int i = 0; i < READER_THREAD_COUNT; i++)
-        tarray[i] = new std::thread(reader);
-
-    std::thread tw(writer);
-    for (int i = 0; i < READER_THREAD_COUNT; i++)
-        tarray[i]->join();
-
-    tw.join();
-    clock_t end = clock();
-    std::cout << "[test_mutex]" << std::endl;
-    std::cout << "thread count: " << READER_THREAD_COUNT << std::endl;
-    std::cout << "result: " << counter.get() << ", cost: " << end - start << ", temp: " << temp << std::endl;
+    // .. 当线程终止时,如果key关联的值不为NULL,则会自动执行该函数,如果无需析构,那么将destructor参数设置为NULL即可
 }
 
-int main()
-{
-    test_mutex();
-    // test_shared_mutex();
-    return 0;
-}
 
-// g++ -g -o thread_test thread_test.cpp -lpthread -std=c++17
+int pthread_key_delete(pthread_key_t key);
+
+int pthread_setspecific(pthread_key_t key, const void* value);
+void* pthread_getspecific(pthread_key_t key);
+函数会调用 pthread_key_create 函数申请一个槽位,返回一个小于1024的无符号整数填入pthread_key_t中, 一共有1024个槽位,记录槽位分配情况的数据结构pthread_keys是进程唯一的
+
+
+2. 线程局部变量
+__thread int val = xxx; 
+
+C++11:
+
+thread_local int val = xxx;
+*/
