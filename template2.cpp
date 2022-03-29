@@ -81,6 +81,7 @@ template <typename T1, typename T2> void compare(T1* t1, T2* t2)
 }
 
 // 特例化参数类型
+// std::swap 就有一个特例化的版本，接收的是数组类型的参数，因为数组比较特殊不能单纯的交换（时间复杂度O(1)），而是需要遍历的方式进行修改（时间复杂O(n)）
 template <typename T1, typename T2> void compare(vector<T1>& vecLeft, vector<T2>& vecRight)
 {
     cout << "use spe vector template compare" << endl;
