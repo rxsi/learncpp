@@ -35,7 +35,7 @@ const char* Max(const char* t1, const char* t2)
     return (strcmp(t1, t2)) > 0 ? t1 : t2;
 }
 
-// 模板特例化
+// 模板重载
 template<typename T> T Max(T* t1, T* t2){ 
     cout << "use overload template Max" << endl;
 }
