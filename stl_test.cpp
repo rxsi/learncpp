@@ -336,8 +336,15 @@ int main(){
     // cout << "vec2 begin: " << &(*vec2.begin()) << endl;
 
     // priority_queue<pair<int, int>, vector<pair<int, int>>, decltype(myCmp)> myQue;
-    priority_queue<pair<int, int>, vector<pair<int, int>>, myCmp2> myQue;
-    myQue.push({1,2});
-    myQue.push({3,4});
-    std::cout << myQue.top().first << std::endl;
+    // priority_queue<pair<int, int>, vector<pair<int, int>>, myCmp2> myQue;
+    // myQue.push({1,2});
+    // myQue.push({3,4});
+    // std::cout << myQue.top().first << std::endl;
+    vector<int> myVec{1, 2, 3, 4, 5, 6, 7};
+    vector<int> myVec2{myVec.rbegin(), myVec.rend()}; // 这种方式和 vector<int> myVec2(myVec.rbegin(), myVec.rend());都可以,但是发现
+    // vector<vector<int> myVec3;
+    // myVec3.push_back({myVec.rbegin(), myVec.rend()});//这种方式才可以,但是不能使用()
+    for (auto& num: myVec2)
+        std::cout << num << " ";
+    std::cout << std::endl;
 } 
