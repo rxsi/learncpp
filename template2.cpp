@@ -9,6 +9,7 @@ using namespace std;
 */
 
 // 特例化
+// 函数的调用顺序：普通函数 > 特例化函数 > 常规模板函数
 
 // 函数特例化(函数不可以偏特化)
 // 首先定义了一个通用的函数模板，用以返回二者之间的较大者
@@ -141,3 +142,21 @@ int main()
     vector<int> vecRight{1,2,3};
     compare(vecLeft,vecRight); // 同样道理，需要对vector类型进行特殊的处理。因此定义了特例化的函数
 }
+
+
+/*
+模板类继承问题
+*/
+
+template<typename T, typename Y>
+class A
+{
+public:
+    A(T t, Y y){}
+};
+
+class Test: public A<int, double>
+{
+public:
+    Test(): A<int, double>(1, 2){}
+};
