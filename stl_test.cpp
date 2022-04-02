@@ -27,6 +27,9 @@ stl容器
 #include <forward_list>
 #include <set>
 #include <map>
+#include <unordered_map>
+#include <unordered_set>
+#include <forward_list>
 using namespace std;
 
 
@@ -70,6 +73,20 @@ struct myCompare
             return node1.y < node2.y;
         return node1.x < node2.x; // 这种方式形成的是大顶堆,如果改成 > 则会变成小顶堆
     }
+};
+
+bool myCmp(pair<int, int>& m, pair<int, int>& n)
+{
+    return m.second > n.second; // compare函数的计算方法在于,传入的m本身在n的前面,如果返回true即表示当前排序是正确的,返回false则会重排
+}
+
+struct myCmp2
+{
+    bool operator() (pair<int, int>& m, pair<int, int>& n)
+    {
+        return m.second > n.second;
+    }
+    /* data */
 };
 
 
@@ -267,7 +284,60 @@ int main(){
     // vector<bool> myVec(1);
     // std::cout << "vec = " << *myVec.begin() << std::endl;
 
-    string s1 = "abcd";
-    string s2 = "abcd";
-    std::cout << (s1 == s2) << std::endl;
+    // string s1 = "abcd";
+    // string s2 = "abcd";
+    // std::cout << (s1 == s2) << std::endl;
+
+    // vector<int> vec1{1, 2, 3, 4, 2, 2, 3, 3, 5}; // 双向迭代器
+    // set<int> set1(vec1.begin(), vec1.end());
+    // for (auto& num : set1)
+    // {
+    //     std::cout << num << " ";
+    // }
+    // std::cout << std::endl;
+
+    // vector<int> vec2(set1.begin(), set1.end());
+    
+    // auto iter = set1.begin()++;
+    // auto iter2 = iter--;
+    // for (auto& num: vec2)
+    // {
+    //     std::cout << num << " ";
+    // }
+    // std::cout << std::endl;
+
+    // unordered_set<int> set1{1, 2, 3, 4, 5};
+    // auto iter = set1.begin(); // 底层是hashtable,是正向迭代器
+    // iter++;
+    // // iter--; //没有--操作
+
+    // forward_list<int> lst{1, 2, 3, 4};
+    // auto iter2 = lst.begin();
+    // iter2++;
+    // // iter2--; // 正向迭代器,没有--操作
+    // string mys = "123";
+    // string mys2 = "255";
+    // string mys3 = "0";
+    // string mys4 = "190";
+    
+    // std::cout << (mys3 <= mys) << std::endl;
+
+    // string s(5, 'a');
+    // std::cout << s << std::endl;
+    // for (char i = 'a'; i < 'z'; ++i)
+    //     std::cout << i << " " << std::endl;
+
+    // vector<int> vec1{1, 2, 3, 4};
+    // vector<int> vec2{5, 6, 7, 8};
+    // cout << "vec1 begin: " << &(*vec1.begin()) << endl;
+    // cout << "vec2 begin: " << &(*vec2.begin()) << endl;
+    // swap(vec1,vec2);
+    // cout << "vec1 begin: " << &(*vec1.begin()) << endl;
+    // cout << "vec2 begin: " << &(*vec2.begin()) << endl;
+
+    // priority_queue<pair<int, int>, vector<pair<int, int>>, decltype(myCmp)> myQue;
+    priority_queue<pair<int, int>, vector<pair<int, int>>, myCmp2> myQue;
+    myQue.push({1,2});
+    myQue.push({3,4});
+    std::cout << myQue.top().first << std::endl;
 } 
