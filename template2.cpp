@@ -28,16 +28,44 @@ template<> const char* Max<const char*>(const char* t1, const char* t2)
 
 // 当我们使用了函数重载时，编译器会优先选择使用非模板的函数，因为它更加特例化
 // 但是有两个问题：1）因为是非模板，因此不管是否有调用，编译阶段都会生成对应的二进制数据，而模板则是有用才生成;2）当处于分离编译模式下时，应该在各个源文件中都声明该函数，否则使用的将会是模板函数
+// 注意，应该要避免模板函数和非模板函数的重载，而应该使用特例化，因为在不同的编译器下会有不同的规则导致bug。
 const char* Max(const char* t1, const char* t2)
 {
     cout << "use normal Max" << endl;
     return (strcmp(t1, t2)) > 0 ? t1 : t2;
 }
 
-// 还可以使重载之后的函数依然是一个模板
-template<typename T> T Max(T* t1, T* t2){ // Max之后没有<>代表这是一个非特例化的模板函数
+// 模板特例化
+template<typename T> T Max(T* t1, T* t2){ 
     cout << "use overload template Max" << endl;
 }
+
+/* 模板函数与非模板函数重载的bug问题示例 */
+
+template <typename T>
+int compare2(const T& lhs, const T& rhs)
+{
+    std::cout << "template compare2" << std::endl;
+    return 0;
+}
+ 
+int compare2(const char* lhs, const char* rhs)
+{
+    std::cout << "ordinary compare2" << std::endl;
+    return 0;
+}
+ 
+int main(int argc, char *argv[])
+{
+    char c1[] = "hello";
+    char c2[] = "hello";
+    compare2(c1, c2);
+}
+
+// 在g++和clang编译下，具现化的结果为int compare2<char [6]>(char const (&) [6], char const (&) [6])，因此调用的是模板函数
+// 而在vs编译下，则是将字符串转成了指针，即匹配了ordinary的那个，因此出现不同编译器下有不同的运行结果
+// 当然如果两个字符串c1和c2的长度不同的话，那么在g++和clang编译器下匹配的还是ordinary版本
+/* =========================================================== */
 
 // 类特例化
 // 首先定义一个通用的类模板
