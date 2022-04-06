@@ -159,6 +159,19 @@ void g(int &&v1, int &v2)
     std::cout << v1 << " " << ++v2 << std::endl;
 }
 
+
+template <typename T>
+T max(T a, T b)
+{
+    return a > b ? a : b;
+}
+
+template <typename T>
+T max2(T& a, T& b)
+{
+    return a > b ? a : b;
+}
+
 int main()
 {
     partNo<std::string> books;
@@ -180,4 +193,11 @@ int main()
     std::cout << "j = " << j << std::endl;
     flip2(g, 42, j); // 如果不使用std::move/std::forward<>则无法通过编译，因为无法向g传递右值
     std::cout << "j = " << j << std::endl;
+    
+    int a = 10;
+    const int b = 11;
+    ::max(a, b); // 因为是值传递,因此可以类型退化,即const int b 会退化成 int b 
+
+    //::max2(a, b); // 因为是引用传递,两个参数类型必须一致,因为这里会报错,把a改成 const int a则不会报错
+
 }
