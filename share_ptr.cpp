@@ -26,6 +26,7 @@
       }
 */
 // 引用计数的实现本质:
+// 引用计数和实际对象是分开的!!!!!!!!!!!!!!!!!!!!!!!! 因为这个特性所以可以把智能指针传递给另外一个指针对象,二者共享目标指针的所有权,实际上是共享底层的T对象指针和shared_count对象,而上层的智能指针对象是不同的.
 // 当我们通过shared_ptr<T> 定义T对象时,会定义一个shared_ptr对象(父类对象是__shared_ptr),主要保存一个T对象指针和一个shared_count对象
 // shared_count对象负责记录引用数量,内部会生成一个指向_Sp_counted_ptr对象的指针
 // 当我们把Shared_ptr对象拷贝或者赋值给别的对象时,会复制本shared_ptr对象的T对象指针(内置类型,不会有多个对象) 和 复制shared_count对象,
@@ -71,32 +72,43 @@ int main(){
     // for (int i = 0; i < 10; i++){
     //     pt5[i] = i;
     // }
+
+    int* p = new int(10);
+    std::cout << "p = " << *p << std::endl;
+    shared_ptr<int> a(p);
+    std::cout << "a = " << *a << " , use_count = " << a.use_count() << std::endl; // 这种方式会创建一个包含p指针的智能指针,且引用计数为1
+    shared_ptr<int> b(p);
+    std::cout << "b = " << *b << " , use_count = " << b.use_count() << std::endl; // 这种方式是另外又创建了一个包含p指针的智能指针,引用计数为1,这种方式是错误的,当a释放掉p指针后,这里如果再释放会导致程序异常.
+    std::cout << "a = " << *a << " , use_count = " << a.use_count() << std::endl; // 此时a的引用计数依然为1
+    shared_ptr<int> c(a);
+    std::cout << "c = " << *c << " , use_count = " << c.use_count() << std::endl; // 直接把a智能指针传通过拷贝构造传递给另外一个智能指针,此时c和a共享p指针的所有权,引用计数为2
+    std::cout << "a = " << *a << " , use_count = " << a.use_count() << std::endl; // 引用计数变为2.
 }
 
 /*
 注意: C++编译器对一个语句内的调用可能会有重排序,因此可能带来一些风险
 */
 
-// 假设一个函数的构造如下:
-void replace(std::shared_ptr<int>, int);
+// // 假设一个函数的构造如下:
+// void replace(std::shared_ptr<int>, int);
 
-int main(){
-    replace(std::shared_ptr<int>(new int(10)), 20);
-}
+// int main(){
+//     replace(std::shared_ptr<int>(new int(10)), 20);
+// }
 
-// 对于参数部分,操作的过程如下:
-// 1. operator new
-// 2. 调用 shared_ptr 构造函数
-// 3. 拷贝int参数
+// // 对于参数部分,操作的过程如下:
+// // 1. operator new
+// // 2. 调用 shared_ptr 构造函数
+// // 3. 拷贝int参数
 
-/*
-上述编译器可能会进行重排, 如顺序变为: 1. 3. 2
-如果在3阶段发生异常,那么就会使得new出来的对象失去智能指针的指向,造成无法释放
-*/
-// 解决方法:
-int main(){
-    auto ptr = make_shared<int>(new int(10));
-    replace(ptr, 20); // 这样就可以确保ptr的安全
-}
+// /*
+// 上述编译器可能会进行重排, 如顺序变为: 1. 3. 2
+// 如果在3阶段发生异常,那么就会使得new出来的对象失去智能指针的指向,造成无法释放
+// */
+// // 解决方法:
+// int main(){
+//     auto ptr = make_shared<int>(new int(10));
+//     replace(ptr, 20); // 这样就可以确保ptr的安全
+// }
 
-// 智能指针支持定制型的删除器,可以解决跨DLL删除对象而调用错deletor的问题
+// // 智能指针支持定制型的删除器,可以解决跨DLL删除对象而调用错deletor的问题
