@@ -49,5 +49,9 @@ int main()
     // 删除所有空格
     // erase-remove 惯用法，用来删除容器中的某些特定元素
     s.erase(remove(s.begin(), s.end(), ' '), s.end()); // 先通过remove将目标元素移到容器末尾，然后再调用erase从iter到end删除
+    
+    string d;
+    d = string(4, 'A') + string(4, 'B');
+    cout << d << endl;
 
 }
