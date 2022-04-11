@@ -202,23 +202,64 @@
 
 // }
 
-#include <vector>
+// #include <vector>
+// #include <string>
+
+// template <typename T>
+// class MyStack
+// {
+// private:
+//     std::vector<T> elems;
+
+// public:
+//     MyStack(const T& elem): elems({elem}){}
+// };
+
+// MyStack(const char*) -> MyStack<std::string>;
+
+// int main()
+// {
+//     MyStack<std::string> stringStack{"bottom"};
+//     return 0;
+// }
+
+#include <iostream>
 #include <string>
+#include <initializer_list>
+
+// void print()
+// {
+//     std::cout << "empty" << std::endl;
+// }
+
+// template <typename T, typename... Types>
+// void print(T firstArg, Types... args)
+// {
+//     std::cout << firstArg << std::endl;
+//     print(args...);
+// }
+
+template <typename F, typename... Types>
+void print(const F& f, Types... args)
+{
+    std::initializer_list<int>{(f(args), 0)...};
+}
 
 template <typename T>
-class MyStack
+void printArg(T t)
 {
-private:
-    std::vector<T> elems;
+    std::cout << t << std::endl;
+}
 
-public:
-    MyStack(const T& elem): elems({elem}){}
-};
+template <typename... Types>
+void expand(Types... args)
+{
+    int arr[] = {(printArg(args), 0)...};
+}
 
-MyStack(const char*) -> MyStack<std::string>;
 
 int main()
 {
-    MyStack<std::string> stringStack{"bottom"};
-    return 0;
+    print([](int i) {std::cout << i << std::endl;}, 1, 2, 3);
+    expand(1, 2, 3, 4);
 }
