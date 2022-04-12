@@ -102,7 +102,7 @@ struct myCmp4 // 这个应用于sort函数，默认是less函数，即从小到�
 {
     bool operator() (int m, int n)
     {
-        return m < n;
+        return m > n;
     }
 };
 
@@ -352,7 +352,7 @@ int main(){
     // cout << "vec1 begin: " << &(*vec1.begin()) << endl;
     // cout << "vec2 begin: " << &(*vec2.begin()) << endl;
 
-    // priority_queue<pair<int, int>, vector<pair<int, int>>, decltype(&myCmp)> myQue(myCmp);
+    priority_queue<pair<int, int>, vector<pair<int, int>>, decltype(&myCmp)> myQue(myCmp);
     priority_queue<pair<int, int>, vector<pair<int, int>>, myCmp2> myQue;
     myQue.push({1, 2});
     myQue.push({3, 4});

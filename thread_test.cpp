@@ -360,37 +360,53 @@ int pthread_mutex_unlock(pthread_mutex_t* mutex);
 执行成功会返回0，
 */
 
-// #include <pthread.h>
-// #include <stdio.h>
-// #include <errno.h>
-// #include <iostream>
+#include <pthread.h>
+#include <stdio.h>
+#include <errno.h>
+#include <iostream>
+#include <unistd.h>
 
-// int main()
-// {
-//     pthread_mutex_t mymutex;
-//     pthread_mutex_init(&mymutex, NULL); // 一般不用检查初始化结果
-//     int ret = pthread_mutex_lock(&mymutex); // 加锁
+pthread_mutex_t mymutex;
 
-//     // 尝试销毁被锁定的mutex对象
-//     ret = pthread_mutex_destroy(&mymutex);
-//     if (ret != 0)
-//     {
-//         if (ret == EBUSY)
-//         {
-//             std::cout << "EBUSY" << std::endl;
-//             std::cout << "Failed to destory mutex." << std::endl;
-//         }
-//     }
+void* thread_fun(void* args)
+{
+    pthread_mutex_lock(&mymutex);
+    pthread_t* threadID = (pthread_t*) args;
+    std::cout << threadID << ": thread running" << std::endl;
+    sleep(3);
+    
+    // 尝试销毁被锁定的mutex对象
+    int  ret = pthread_mutex_destroy(&mymutex);
+    if (ret != 0)
+    {
+        if (ret == EBUSY)
+        {
+            std::cout << "EBUSY" << std::endl;
+            std::cout << "Failed to destory mutex." << std::endl;
+        }
+    }
+    pthread_mutex_unlock(&mymutex);
+    return NULL;
+}
 
-//     ret = pthread_mutex_unlock(&mymutex); // 解锁
-//     // 尝试销毁已经解锁的mutex对象
-//     ret = pthread_mutex_destroy(&mymutex);
-//     if (ret == 0)
-//     {
-//         std::cout << "Successed to destory mutex." << std::endl;
-//     }
-//     return 0;
-// }
+int main()
+{
+    pthread_mutex_init(&mymutex, NULL); // 一般不用检查初始化结果
+    pthread_t threadID1, threadID2, threadID3;
+    pthread_create(&threadID1, NULL, thread_fun, &threadID1);
+    pthread_create(&threadID2, NULL, thread_fun, &threadID2);
+    pthread_create(&threadID3, NULL, thread_fun, &threadID3);
+    pthread_join(threadID1, NULL);
+    pthread_join(threadID2, NULL);
+    pthread_join(threadID3, NULL);
+    // 尝试销毁已经解锁的mutex对象
+    int ret = pthread_mutex_destroy(&mymutex);
+    if (ret == 0)
+    {
+        std::cout << "Successed to destory mutex." << std::endl;
+    }
+    return 0;
+}
 
 /*
 linux 信号量

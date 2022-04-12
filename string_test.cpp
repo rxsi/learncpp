@@ -24,19 +24,19 @@ std::remove 是 stl 的函数，用以“移除”指定元素
 
 int main()
 {
-    // vector<int> vec{1, 3, 3, 4, 3, 5};
-    // auto iter = remove(vec.begin(), vec.end(), 3); // 返回经过“移除”之后，最后位置的迭代器，实际上的删除还需要借助erase方法
-    // for (auto first = vec.begin(); first != iter; ++first)
-    // {
-    //     cout << *first << " ";
-    // }
-    // cout << endl;
-
-    // for (auto first = vec.begin(); first != vec.end(); ++first)
-    // {
-    //     cout << *first << " "; // 输出结果是: 1 4 5 4 3 5，remove方法并没有删除元素，只是把后面的非目标元素移到前面，因此容器的size、capacity等参数是不变的
-    // }
-    // cout << endl;
+    vector<int> vec{1, 3, 3, 4, 3, 5};
+    auto iter = remove(vec.begin(), vec.end(), 3); // 返回经过“移除”之后，最后位置的迭代器，实际上的删除还需要借助erase方法
+    for (auto first = vec.begin(); first != vec.end(); ++first)
+    {
+        cout << *first << " ";
+    }
+    cout << endl;
+    vec.erase(iter, vec.end());
+    for (auto first = vec.begin(); first != vec.end(); ++first)
+    {
+        cout << *first << " "; // 输出结果是: 1 4 5 4 3 5，remove方法并没有删除元素，只是把后面的非目标元素移到前面，因此容器的size、capacity等参数是不变的
+    }
+    cout << endl;
 
 
     string s = " nice to see you. ";
