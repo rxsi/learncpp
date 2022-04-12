@@ -68,26 +68,42 @@ public:
 
 struct myCompare
 {
-    bool operator() (Node node1, Node node2) // 注意,原本默认的是less算法,当传入a, b且返回true是表示 a < b
+    bool operator() (Node node1, Node node2) // 这里传进来的node1在序列中的顺序是先于node2的，如果这个顺序是正确的，那么返回true，否则返回false
     {
         if (node1.x == node2.x)
             return node1.y < node2.y;
-        return node1.x < node2.x; // 这种方式形成的是大顶堆,如果改成 > 则会变成小顶堆
+        return node1.x < node2.x; 
     }
 };
 
 bool myCmp(pair<int, int>& m, pair<int, int>& n)
 {
-    return m.second > n.second; // compare函数的计算方法在于,传入的m本身在n的前面,如果返回true即表示当前排序是正确的,返回false则会重排
+    return m.second > n.second; // compare函数的计算方法在于,传入的m本身在n的前面（注意是大顶堆结构）,如果返回true即表示当前排序是正确的,返回false则会重排，注意这里是大顶堆，也就是如果返回true，那么就是符合大顶堆的设置
 }
 
 struct myCmp2
 {
-    bool operator() (pair<int, int>& m, pair<int, int>& n)
+    bool operator() (pair<int, int>& m, pair<int, int>& n) // 在排序结构中，默认使用的是大顶堆，且m在n之前，如果返回true，那么意味着当前符合大顶堆结构，即最后结果是从大到小排序
     {
-        return m.second > n.second;
+        if (m.first == n.first) return m.second > n.second; 
+        return m.first > n.first;
     }
-    /* data */
+};
+
+struct myCmp3
+{
+    bool operator() (int m, int n)
+    {
+        return m < n;
+    }
+};
+
+struct myCmp4 // 这个应用于sort函数，默认是less函数，即从小到大排序，因此如果返回true则是当前的m和n是符合顺序的
+{
+    bool operator() (int m, int n)
+    {
+        return m < n;
+    }
 };
 
 
@@ -336,11 +352,53 @@ int main(){
     // cout << "vec1 begin: " << &(*vec1.begin()) << endl;
     // cout << "vec2 begin: " << &(*vec2.begin()) << endl;
 
-    // priority_queue<pair<int, int>, vector<pair<int, int>>, decltype(myCmp)> myQue;
-    // priority_queue<pair<int, int>, vector<pair<int, int>>, myCmp2> myQue;
-    // myQue.push({1,2});
-    // myQue.push({3,4});
-    // std::cout << myQue.top().first << std::endl;
+    // priority_queue<pair<int, int>, vector<pair<int, int>>, decltype(&myCmp)> myQue(myCmp);
+    priority_queue<pair<int, int>, vector<pair<int, int>>, myCmp2> myQue;
+    myQue.push({1, 2});
+    myQue.push({3, 4});
+    myQue.push({2, 2});
+    myQue.push({1, 1});
+    int n = myQue.size();
+    for (int i = 0; i < n; ++i)
+    {
+        std::cout << myQue.top().first << " " << myQue.top().second << std::endl;
+        myQue.pop();
+    }
+    std::cout << std::endl;
+
+    priority_queue<int, vector<int>, myCmp3> testQue;
+    testQue.push(1);
+    testQue.push(2);
+    testQue.push(2); 
+    testQue.push(3); 
+    testQue.push(4);
+    n = testQue.size();
+    for (int i = 0; i < n; ++i)
+    {
+        std::cout << testQue.top() << std::endl;
+        testQue.pop();
+    } 
+    std::cout << std::endl;
+
+    priority_queue<int> testQue2;
+    testQue2.push(1);
+    testQue2.push(2);
+    testQue2.push(2); 
+    testQue2.push(3); 
+    testQue2.push(4);
+    n = testQue2.size();
+    for (int i = 0; i < n; ++i)
+    {
+        std::cout << testQue2.top() << std::endl;
+        testQue2.pop();
+    } 
+    std::cout << std::endl;
+
+    vector<int> v{2, 4, 1, 3, 9, 0, 2, 5};
+    sort(v.begin(), v.end(), myCmp4());
+    for (auto& n : v) std::cout << n << std::endl;
+
+
     // vector<int> myVec{1, 2, 3, 4, 5, 6, 7};
     // vector<int> myVec2{myVec.rbegin(), myVec.rend()}; // 这种方式和 vector<int> myVec2(myVec.rbegin(), myVec.rend());都可以,但是发现
     // // vector<vector<int> myVec3;
@@ -358,5 +416,4 @@ int main(){
     // myMap[1].push_back(10);
     // myMap[2].push_back(11);
     // for (auto& kv: myMap) cout << kv.first << " " << kv.second << endl;
-
 } 
