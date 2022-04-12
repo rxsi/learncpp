@@ -239,27 +239,119 @@
 //     print(args...);
 // }
 
-template <typename F, typename... Types>
-void print(const F& f, Types... args)
-{
-    std::initializer_list<int>{(f(args), 0)...};
-}
+// template <typename F, typename... Types>
+// void print(const F& f, Types... args)
+// {
+//     std::initializer_list<int>{(f(args), 0)...};
+// }
 
-template <typename T>
-void printArg(T t)
-{
-    std::cout << t << std::endl;
-}
+// template <typename T>
+// void printArg(T t)
+// {
+//     std::cout << t << std::endl;
+// }
 
-template <typename... Types>
-void expand(Types... args)
-{
-    int arr[] = {(printArg(args), 0)...};
-}
+// template <typename... Types>
+// void expand(Types... args)
+// {
+//     int arr[] = {(printArg(args), 0)...};
+// }
 
 
-int main()
+// int main()
+// {
+//     print([](int i) {std::cout << i << std::endl;}, 1, 2, 3);
+//     expand(1, 2, 3, 4);
+// }
+
+// 非依赖基类
+template <typename X>
+class Base
 {
-    print([](int i) {std::cout << i << std::endl;}, 1, 2, 3);
-    expand(1, 2, 3, 4);
-}
+public:
+    int basefield;
+    using T = int;
+};
+
+// template <typename T>
+// class D2: public Base<double>
+// {
+// public:
+//     void f()
+//     {
+//         basefield = 7;
+//     }
+//     T stragne; // 这里会查询到Base中的T
+// };
+
+// void g(D2<int*>& d2, int* p)
+// {
+//     d2.stragne = p; // 这里在编译期之前就会提示异常
+// }
+
+// 依赖基类
+// template <typename T>
+// class DD: public Base<T>
+// {
+// public:
+//     void f() {std::cout << this->basefield << std::endl;} 
+//     // 如果这里使用的是basefield，那么编译时会报错，
+//     // 因为没有声明是依赖模板参数，编译器会要求在编译前就可以找到对应的定义，不会进入到第二阶段查找，因为会报错
+//     // 要声明this->basefield或者 Base<T>::basefiled（这个会影响多态性）
+// };
+
+// template <>
+// class Base<bool>
+// {
+// public:
+//     enum {basefield = 42};
+// };
+
+// void g(DD<bool>& d)
+// {
+//     d.f();
+// }
+
+// int main()
+// {
+//     DD<bool> d;
+//     g(d);
+// }
+
+// template <typename T>
+// class B
+// {
+// public:
+//     enum E {e1 = 6, e2 = 26, e3 = 23};
+//     virtual void zero(E e = e1);
+//     virtual void one(E&);
+// };
+
+// template <typename T>
+// class D: public B<T>
+// {
+// public:
+//     void f()
+//     {
+//         std::cout << "D:f()" << std::endl;
+//         typename D<T>::E e; // 这里不能使用this->E，因为typename的原因，其他情况下要优先使用this->
+//         this->zero(); // 这里如果使用了D<T>::E或者B<T>::E都不能实现多态性
+//         this->one(e); // 这里《C++ template》说可以不同加this->，但是实际上是需要的
+//     }
+// };
+
+// // 如果有多个模板类定义了相同的属性，那么需要使用using指定
+// template <typename T>
+// class DD3: public Base<T>
+// {
+// public:
+//     using Base<T>::basefield; 
+//     void f() {basefield = 0;}
+// };
+
+// int main()
+// {
+//     // D<int> d;
+//     // d.f();
+//     return 0;
+// }
