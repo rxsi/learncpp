@@ -84,59 +84,138 @@ fd[0]指向管道的读端,fd[1]指向管道写端
 // }
 
 
+// #include <stdio.h>
+// #include <unistd.h>
+// #include <string.h>
+// #include <errno.h>
+// #include <sys/wait.h>
+
+// int main()
+// {
+//     int fd[2];
+//     int ret = pipe(fd);
+//     if (ret == -1)
+//     {
+//         perror("pipe error\n");
+//         return 1;
+//     }
+//     pid_t id = fork(); // fork之后,如果是0则代表是当前是子进程,但是在父进程中这个id是子进程的pid
+//     if (id == 0)
+//     {
+//         int i = 0;
+//         close(fd[0]);
+//         const char* child = "I am child ";
+//         while (i < 10)
+//         {
+//             write(fd[1], child, strlen(child)+1);
+//             sleep(1);
+//             i++;
+//         }
+//     }
+//     else if (id > 0)
+//     {
+//         close(fd[1]);
+//         char msg[100];
+//         int status = 0;
+//         int j = 0;
+//         while (j < 10)
+//         {
+//             memset(msg, '\0', sizeof(msg));
+//             ssize_t s = read(fd[0], msg, sizeof(msg));
+//             printf("%s %d\n", msg, j);
+//             j++;
+//         }
+//         close(fd[0]);
+//         pid_t ret = waitpid(id, &status, 0);// pid waitpid(pid_t pid, int* status, int options)
+//         // 暂停当前进程的执行,等待有信号来到或者子进程结束,如果没有这行,那么子进程还没有运行结束,父进程就退出了
+//         // 子进程的状态会存储在status中,如果只是当存想到阻塞功能,那么直接传入NULL即可
+
+//         // pid < -1: 等待进程组识别码为pid绝对值的任何子进程
+//         // pid = -1: 等待任何子进程,相当于wait()
+//         // pid = 0: 等待进程组识别码与目前进程相同的任何子进程
+//         // pid > 0: 等待任何子进程识别码为pid的子进程
+
+//         printf("exitsingle(%d), exit(%d)\n", status&0xff, (status>>8)&0xff);
+//         // 输出为13, 通过 kill -l 可以知道是 SIGPIPE 信号
+//     }
+//     else
+//     {
+//         perror("fork error\n");
+//         return 2;
+//     }
+//     return 0;
+//     // https://blog.csdn.net/skyroben/article/details/71513385
+// }
+
+/*
+有名管道(FIFO)
+FIFO为一种Unix系统的特殊文件类型,因为linxu中所有事物都是文件,他在文件系统中以文件名的形式存在.
+在文件系统中有对应的文件路径,当一个进程以读(r)的方式打开该文件,而另一个进程以写(w)的方式打开该文件,
+那么内核就会在这两个进程之间建立管道,所以FIFO实际上也由内核管理,并不与硬盘打交道.
+当删除FIFO文件时,管道连接也随之消失.
+FIFO的好处在于可以通过文件的路径来识别管道,从而让没有亲缘关系的进程之间建立连接
+
+函数原型:
+int mkfifo(const char* pathname, mod_t mode);
+int mknode(const char* pathname, mode_t mode | S_IFIFO, (dev_t)0);
+pathname 是一个普通的Unix路径名,也是该FIFO的名字
+mode参数指定了文件权限和将被创建的文件类型(再次情况下是S_IFIFO),dev是创建设备特殊文件时使用的一个值,对于
+先进先出文件该值为0
+当创建一个FIFO后,他必须以只读方式打开或者只写方式打开,FIFO是半双工
+一般的IO函数,如read, write, close, unlink都可以应用于FIFO
+管道在所有进程最终关闭之后自动消失,或者主动调用close函数.而文件系统中的FIFO文件则需要通过调用unlink函数进行删除,否则下次调用mkfile会报错
+
+*/
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#define PATH "/tmp/my_fifo"
 
 int main()
 {
-    int fd[2];
-    int ret = pipe(fd);
+    int ret = mkfifo(PATH, 0777); // 如果文件已经存在,那么会返回-1
     if (ret == -1)
     {
         perror("pipe error\n");
         return 1;
     }
-    pid_t id = fork(); // fork之后,如果是0则代表是当前是子进程,但是在父进程中这个id是子进程的pid
+
+    pid_t id = fork();
     if (id == 0)
     {
+        int fd = open(PATH, O_WRONLY);
         int i = 0;
-        close(fd[0]);
-        const char* child = "I am child ";
-        while (i < 10)
+        const char* child = "I am child by fifo";
+        while (i < 5)
         {
-            write(fd[1], child, strlen(child)+1);
+            write(fd, child, strlen(child)+1);
             sleep(1);
             i++;
         }
+        close(fd);
     }
     else if (id > 0)
     {
-        close(fd[1]);
+        int fd = open(PATH, O_RDONLY);
         char msg[100];
         int status = 0;
         int j = 0;
-        while (j < 10)
+        while (j < 5)
         {
             memset(msg, '\0', sizeof(msg));
-            ssize_t s = read(fd[0], msg, sizeof(msg));
+            ssize_t s = read(fd, msg, sizeof(msg));
             printf("%s %d\n", msg, j);
             j++;
         }
-        close(fd[0]);
-        pid_t ret = waitpid(id, &status, 0);// pid waitpid(pid_t pid, int* status, int options)
-        // 暂停当前进程的执行,等待有信号来到或者子进程结束,如果没有这行,那么子进程还没有运行结束,父进程就退出了
-        // 子进程的状态会存储在status中,如果只是当存想到阻塞功能,那么直接传入NULL即可
-
-        // pid < -1: 等待进程组识别码为pid绝对值的任何子进程
-        // pid = -1: 等待任何子进程,相当于wait()
-        // pid = 0: 等待进程组识别码与目前进程相同的任何子进程
-        // pid > 0: 等待任何子进程识别码为pid的子进程
-
-        printf("exitsingle(%d), exit(%d)\n", status&0xff, (status>>8)&0xff);
-        // 输出为13, 通过 kill -l 可以知道是 SIGPIPE 信号
+        close(fd); // 关闭管道文件
+        unlink(PATH); // 删除管道文件,底层使用了引用计数,即使这个语句放在open之后就调用,依然不会影响已经打开的FIFO管道.
+        // 如果放在open之前,则open函数会被阻塞
     }
     else
     {
@@ -144,5 +223,4 @@ int main()
         return 2;
     }
     return 0;
-    // https://blog.csdn.net/skyroben/article/details/71513385
 }
