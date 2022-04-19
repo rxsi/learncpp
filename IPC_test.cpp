@@ -167,60 +167,107 @@ mode参数指定了文件权限和将被创建的文件类型(再次情况下是
 
 */
 
+// #include <stdio.h>
+// #include <unistd.h>
+// #include <string.h>
+// #include <errno.h>
+// #include <sys/types.h>
+// #include <sys/stat.h>
+// #include <fcntl.h>
+
+// #define PATH "/tmp/my_fifo"
+
+// int main()
+// {
+//     int ret = mkfifo(PATH, 0777); // 如果文件已经存在,那么会返回-1
+//     if (ret == -1)
+//     {
+//         perror("pipe error\n");
+//         return 1;
+//     }
+
+//     pid_t id = fork();
+//     if (id == 0)
+//     {
+//         int fd = open(PATH, O_WRONLY);
+//         int i = 0;
+//         const char* child = "I am child by fifo";
+//         while (i < 5)
+//         {
+//             write(fd, child, strlen(child)+1);
+//             sleep(1);
+//             i++;
+//         }
+//         close(fd);
+//     }
+//     else if (id > 0)
+//     {
+//         int fd = open(PATH, O_RDONLY);
+//         char msg[100];
+//         int status = 0;
+//         int j = 0;
+//         while (j < 5)
+//         {
+//             memset(msg, '\0', sizeof(msg));
+//             ssize_t s = read(fd, msg, sizeof(msg));
+//             printf("%s %d\n", msg, j);
+//             j++;
+//         }
+//         close(fd); // 关闭管道文件
+//         unlink(PATH); // 删除管道文件,底层使用了引用计数,即使这个语句放在open之后就调用,依然不会影响已经打开的FIFO管道.
+//         // 如果放在open之前,则open函数会被阻塞
+//     }
+//     else
+//     {
+//         perror("fork error\n");
+//         return 2;
+//     }
+//     return 0;
+// }
+
+/*
+信号
+使用kill -l可以查看所有的信号
+*/
 #include <stdio.h>
 #include <unistd.h>
-#include <string.h>
-#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
-
-#define PATH "/tmp/my_fifo"
+#include <errno.h>
+#include <cstdlib>
 
 int main()
 {
-    int ret = mkfifo(PATH, 0777); // 如果文件已经存在,那么会返回-1
-    if (ret == -1)
+    pid_t pid;
+    int ret;
+    pid = fork();
+    int newret;
+    if (pid < 0)
     {
-        perror("pipe error\n");
-        return 1;
+        perror("fork error\n");
+        exit(1);
     }
-
-    pid_t id = fork();
-    if (id == 0)
+    else if (pid == 0)
     {
-        int fd = open(PATH, O_WRONLY);
-        int i = 0;
-        const char* child = "I am child by fifo";
-        while (i < 5)
-        {
-            write(fd, child, strlen(child)+1);
-            sleep(1);
-            i++;
-        }
-        close(fd);
-    }
-    else if (id > 0)
-    {
-        int fd = open(PATH, O_RDONLY);
-        char msg[100];
-        int status = 0;
-        int j = 0;
-        while (j < 5)
-        {
-            memset(msg, '\0', sizeof(msg));
-            ssize_t s = read(fd, msg, sizeof(msg));
-            printf("%s %d\n", msg, j);
-            j++;
-        }
-        close(fd); // 关闭管道文件
-        unlink(PATH); // 删除管道文件,底层使用了引用计数,即使这个语句放在open之后就调用,依然不会影响已经打开的FIFO管道.
-        // 如果放在open之前,则open函数会被阻塞
+        raise(SIGSTOP); // 使子进程进入暂停状态
+        // sleep(5);
+        exit(0);
     }
     else
     {
-        perror("fork error\n");
-        return 2;
+        printf("child process pid = %d\n", pid);
+        if (waitpid(pid, NULL, WNOHANG) == 0) // 设置为WHOHANG时,只要子进程没有dead,则会返回0;可以使子进程暂停,也可以使子进程sleep(5)
+        {
+            if (ret = kill(pid, SIGKILL) == 0) // 杀死子进程
+            {
+                printf("kill child process");
+            }
+            else
+            {
+                perror("kill child process fail");
+            }
+        }
     }
-    return 0;
 }
