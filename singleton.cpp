@@ -224,4 +224,4 @@ public:
 
 // initialize defaultly
 Singleton Singleton::instance; // 会在main函数之前初始化,所以没有线程竞争问题
-// 全局变量会在main函数开始之前初始化,分别是在编译阶段和其实
+// 全局变量会在main函数开始之前初始化!!!!!

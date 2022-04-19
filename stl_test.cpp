@@ -106,6 +106,17 @@ struct myCmp4 // 这个应用于sort函数，默认是less函数，即从小到�
     }
 };
 
+struct pair_hash
+{
+    template<typename T1, typename T2>
+    std::size_t operator() (const pair<T1, T2>& p) const
+    {
+        auto h1 = std::hash<T1>{}(p.first); // 这里的{}的意思是实例化一个临时的hash对象,然后调用该对对象的operator()方法.
+        auto h2 = std::hash<T2>{}(p.second); // 等价于std::hash<T2>()(p.second), 也等价于std::hash<T2> t; t(p.second);
+        return h1 ^ h2;
+    }
+};
+
 
 
 int main(){
@@ -352,51 +363,51 @@ int main(){
     // cout << "vec1 begin: " << &(*vec1.begin()) << endl;
     // cout << "vec2 begin: " << &(*vec2.begin()) << endl;
 
-    priority_queue<pair<int, int>, vector<pair<int, int>>, decltype(&myCmp)> myQue(myCmp);
-    priority_queue<pair<int, int>, vector<pair<int, int>>, myCmp2> myQue;
-    myQue.push({1, 2});
-    myQue.push({3, 4});
-    myQue.push({2, 2});
-    myQue.push({1, 1});
-    int n = myQue.size();
-    for (int i = 0; i < n; ++i)
-    {
-        std::cout << myQue.top().first << " " << myQue.top().second << std::endl;
-        myQue.pop();
-    }
-    std::cout << std::endl;
+    // priority_queue<pair<int, int>, vector<pair<int, int>>, decltype(&myCmp)> myQue(myCmp);
+    // priority_queue<pair<int, int>, vector<pair<int, int>>, myCmp2> myQue;
+    // myQue.push({1, 2});
+    // myQue.push({3, 4});
+    // myQue.push({2, 2});
+    // myQue.push({1, 1});
+    // int n = myQue.size();
+    // for (int i = 0; i < n; ++i)
+    // {
+    //     std::cout << myQue.top().first << " " << myQue.top().second << std::endl;
+    //     myQue.pop();
+    // }
+    // std::cout << std::endl;
 
-    priority_queue<int, vector<int>, myCmp3> testQue;
-    testQue.push(1);
-    testQue.push(2);
-    testQue.push(2); 
-    testQue.push(3); 
-    testQue.push(4);
-    n = testQue.size();
-    for (int i = 0; i < n; ++i)
-    {
-        std::cout << testQue.top() << std::endl;
-        testQue.pop();
-    } 
-    std::cout << std::endl;
+    // priority_queue<int, vector<int>, myCmp3> testQue;
+    // testQue.push(1);
+    // testQue.push(2);
+    // testQue.push(2); 
+    // testQue.push(3); 
+    // testQue.push(4);
+    // n = testQue.size();
+    // for (int i = 0; i < n; ++i)
+    // {
+    //     std::cout << testQue.top() << std::endl;
+    //     testQue.pop();
+    // } 
+    // std::cout << std::endl;
 
-    priority_queue<int> testQue2;
-    testQue2.push(1);
-    testQue2.push(2);
-    testQue2.push(2); 
-    testQue2.push(3); 
-    testQue2.push(4);
-    n = testQue2.size();
-    for (int i = 0; i < n; ++i)
-    {
-        std::cout << testQue2.top() << std::endl;
-        testQue2.pop();
-    } 
-    std::cout << std::endl;
+    // priority_queue<int> testQue2;
+    // testQue2.push(1);
+    // testQue2.push(2);
+    // testQue2.push(2); 
+    // testQue2.push(3); 
+    // testQue2.push(4);
+    // n = testQue2.size();
+    // for (int i = 0; i < n; ++i)
+    // {
+    //     std::cout << testQue2.top() << std::endl;
+    //     testQue2.pop();
+    // } 
+    // std::cout << std::endl;
 
-    vector<int> v{2, 4, 1, 3, 9, 0, 2, 5};
-    sort(v.begin(), v.end(), myCmp4());
-    for (auto& n : v) std::cout << n << std::endl;
+    // vector<int> v{2, 4, 1, 3, 9, 0, 2, 5};
+    // sort(v.begin(), v.end(), myCmp4());
+    // for (auto& n : v) std::cout << n << std::endl;
 
 
     // vector<int> myVec{1, 2, 3, 4, 5, 6, 7};
@@ -416,4 +427,26 @@ int main(){
     // myMap[1].push_back(10);
     // myMap[2].push_back(11);
     // for (auto& kv: myMap) cout << kv.first << " " << kv.second << endl;
+
+    // unordered_map<pair<int, int>, int> myMap; // 因为不接受pair作为key,因此这种方式的定义会报错,需要添加自定义的hash函数
+    unordered_map<pair<int, int>, int, pair_hash> myMap;
+    myMap[{1, 1}] = 1;
+    myMap[{2, 2}] = 2;
+    myMap[{2, 1}] = 3;
+    myMap[{1, 2}] = 4;
+    for (auto& kv: myMap)
+    {
+        std::cout << kv.first.first << " " << kv.first.second << " " << kv.second << std::endl;
+    }
+
+    map<pair<int, int>, int> myMap2; // map可以直接把pair当作key,而且他可以接收的是自定义的排序算法,而不是hash算法
+    map<pair<int, int>, int, myCmp2> myMap3;
+    myMap2[{1, 1}] = 1;
+    myMap2[{2, 2}] = 2;
+    myMap2[{2, 1}] = 3;
+    myMap2[{1, 2}] = 4;
+    for (auto& kv: myMap2)
+    {
+        std::cout << kv.first.first << " " << kv.first.second << " " << kv.second << std::endl;
+    }
 } 
