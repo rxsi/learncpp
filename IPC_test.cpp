@@ -229,45 +229,223 @@ mode参数指定了文件权限和将被创建的文件类型(再次情况下是
 信号
 使用kill -l可以查看所有的信号
 */
-#include <stdio.h>
-#include <unistd.h>
+// #include <stdio.h>
+// #include <unistd.h>
+// #include <sys/types.h>
+// #include <sys/stat.h>
+// #include <sys/wait.h>
+// #include <fcntl.h>
+// #include <errno.h>
+// #include <cstdlib>
+
+// int main()
+// {
+//     pid_t pid;
+//     int ret;
+//     pid = fork();
+//     int newret;
+//     if (pid < 0)
+//     {
+//         perror("fork error\n");
+//         exit(1);
+//     }
+//     else if (pid == 0)
+//     {
+//         raise(SIGSTOP); // 使子进程进入暂停状态
+//         // sleep(5);
+//         exit(0);
+//     }
+//     else
+//     {
+//         printf("child process pid = %d\n", pid);
+//         if (waitpid(pid, NULL, WNOHANG) == 0) // 设置为WHOHANG时,只要子进程没有dead,则会返回0;可以使子进程暂停,也可以使子进程sleep(5)
+//         {
+//             if (ret = kill(pid, SIGKILL) == 0) // 杀死子进程
+//             {
+//                 printf("kill child process");
+//             }
+//             else
+//             {
+//                 perror("kill child process fail");
+//             }
+//         }
+//     }
+// }
+
+/*
+消息队列
+#include <sys/msg.h>
+消息队列提供了一种从一个进程向另一个进程发送一个数据块的方法,消息队列是消息的连接表,存放在内核中并由消息队列标识符标识.
+每个数据块都含有一个类型,接收进程可以独立的接收含有不同类型的数据结构,且具有最大长度限制
+消息队列可以在没有接收进程的情况下,发送消息给消息队列,避免了管道/FIFO的同步和阻塞问题(管道类型要求至少存在一个读端和写端)
+
+MSGMAX: 消息的最大长度
+MSGMNB: 队列的最大长度
+*/
+
+/* msgget函数:用以打开一个现存的队列或者创建一个消息队列
+int msgget(key_t key, int msgflg);
+key_t: 本质是int类型
+msgflg: 表示的权限标识,表示消息队列的访问权限.msgflg可以与IPC_CREATE做 | 操作,表示当key所命名的消息队列不存在时
+创建一个消息队列,如果key命名的消息队列存在,则IPC_CREATE会被忽略,则只返回一个标识符(非0) 
+如果创建失败,则返回-1.
+
+如果成功创建了一个新的队列,那么会关联到一个结构体msqid_ds,通过该结构体可以控制消息队列的行为
+
+
+struct msqid_ds
+{
+    struct ipc_perm msg_perm; // 权限设置,类似文件访问权限
+    time_t msg_stime; // 最后调用msgsnd调用时间
+    time_t msg_rtime; // 最后调用msgrcv调用时间
+    time_t msg_ctime; // 队列的创建时间或者最后调用msgctl执行IPC_SET操作
+
+    unsigned long msg_cbytes; // 当前队列中所有消息的总长度
+    msgqnum_t msg_qnum; // 当前队列中有多少个消息
+    msglen_t msg_qbytes; // 当前队列能够存放的消息体的总字节大小
+    pid_t msg_lspid; // 最后调用msgsnd的进程的ID
+    pid_t msg_lrpid; // 最后调用msgrcv的进程的ID
+};
+
+struct ipc_perm
+{
+    key_t __key; // 通过msgget创建的key
+    uid_t uid; // 拥有者的id,可通过IPC_SET修改
+    gid_t gid; // 拥有者的组id,可通过IPC_SET修改
+    uid_t cuid; // 创建者的id
+    gid_t cgid; // 拥有者的组id
+    unsigned short mode; // 权限,可通过IPC_SET修改
+    // mode可选有:
+    // 0400 用户有读权限
+    // 0200 用户有写权限
+    // 0040 与用户同组的用户都有读权限
+    // 0020 与用户同组的用户都有写权限
+    // 0004 其他用户有读权限
+    // 0002 其他用户有写权限
+    
+    // 如果设置0666,则代表所有用户都有可读可写权限,例如通过msgget(key_t key, 0666|IPC_CREATE)的方式创建并设置权限
+    unsigned short __seq; 
+};
+
+*/
+
+/*
+msgctl函数:用以控制队列的权限和行为
+int msgctl(int msqid, int cmd, struct msqid_ds* buf);
+msqid:在msgget创建的id
+cmd可选值:
+IPC_STAT: 将在msgget创建的key 和 msqid_ds结构体关联信息,复制到buf中.不过调用次方法的用户要有读权限
+IPC_SET:可设置某些属性
+IPC_RMID:删除消息队列,会唤醒所有的读进程和写进程,给这些进程返回errno=EIDRM,msgctl的buf参数可以设置为NULL
+
+当调用成功会返回0,如果失败则返回-1,且errno会被设置为对应的状态
+*/
+
+/*
+msgsnd函数:发送消息到消息队列,调用者需要有写权限
+int msgsnd(int msqid, const void* msgp, size_t msgz, int msgflg);
+msgrcv函数:从消息队列中取出消息,调用者需要有读权限
+ssize_t msgrcv(int msqid, void* msgp, size_t msgsz, long msgtyp, int msgflg);
+
+void* msgp 指向结构体,用以
+struct msgbuf
+{
+    long mtype; // 消息类型,需要>0
+    char mtext[1]; // 消息体,该大小由size_t msgz指定
+}
+当插入的消息:
+1)总字节数超过msg_qbytes字段
+2)或者总消息数量超过msg_qbytes字段,这个判断是为了避免无限插入长度为0的消息
+
+阻塞和非阻塞:
+如果消息队列空间不足,那么msgsnd()会阻塞到空间足够,如果msgsnd函数的msgflg有设置IPC_NOWAIT,那么会立即返回失败,错误码errno = EAGAIN
+当msgsnd为阻塞时,如果队列被移除(errno = EIDRM)或者被信号打断,如(errno = EINTR),那么会返回失败
+
+当读取成功时,返回0,否则返回-1
+
+msgrcv函数的msgsz参数如果小于所要接收的消息的mtext长度,则如果设置了MSG_NOERROR则会截断该消息,否则读取失败返回-1,
+并且errno = E2BIG,原消息不会被移除.
+
+如果 msgtyp == 0:则消息队列中的首个消息被读取
+> 0时,消息队列中的msgbuf中与之相等的mtype的消息会被读取
+< 0时,消息队列中第一个小于等于该绝对值的消息会被读取(实现对一个范围的消息进行读取)
+
+如果消息队列中已经没有目标类型消息,当msgflg没有设置IPC_NOWAIT时,读取操作将会进入阻塞,指导有目标消息类型
+的消息被放入消息队列中,或者该消息队列被移除.
+
+当读取成功时,msgrcv函数返回对应的字节数,否则返回-1
+*/
+
+#include <sys/msg.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <fcntl.h>
-#include <errno.h>
-#include <cstdlib>
+#include <string.h>
+#include <iostream>
+
+#define MAX_TEXT_SIZE 50
+
+struct msg_buf
+{
+    long mtype;
+    char mtext[MAX_TEXT_SIZE];
+};
 
 int main()
 {
-    pid_t pid;
-    int ret;
-    pid = fork();
-    int newret;
+
+    int msgid = msgget((size_t)123, 0666 | IPC_CREAT);
+    if (msgid == -1)
+    {
+        perror("msgget error");
+        return 1; // 通过return的方式是把栈弹出,回到上层调用,这里在main函数起到退出进程的效果
+    }
+
+    pid_t pid = fork();
     if (pid < 0)
     {
-        perror("fork error\n");
-        exit(1);
+        printf("fork error");
+        exit(0); // exit(0)是正常退出程序,exit(1)是非正常退出程序.exit的退出会直接删除进程,并将信号返回到OS
     }
-    else if (pid == 0)
+
+    if (pid == 0)
     {
-        raise(SIGSTOP); // 使子进程进入暂停状态
-        // sleep(5);
-        exit(0);
+        for (int i = 1; i < 10; ++i)
+        {
+            msg_buf buf;
+            sleep(1);
+            char text[MAX_TEXT_SIZE] = "write msg from child process!" ;
+            buf.mtype = i; // 注意这里不能是0!!!!
+            strcpy(buf.mtext, text); // 注意这里不能是buf.mtext = text;
+            // 因为数组名在C语言中退化为常量指针,因此不能使用=号
+            // 只能使用memcpy(字符数组是strcpy),或者使用循环赋值的方式
+
+            if (msgsnd(msgid, &buf, MAX_TEXT_SIZE, 0) == -1)
+            {
+                perror("msgsnd failed");
+                exit(1);
+            }
+        }
     }
     else
     {
-        printf("child process pid = %d\n", pid);
-        if (waitpid(pid, NULL, WNOHANG) == 0) // 设置为WHOHANG时,只要子进程没有dead,则会返回0;可以使子进程暂停,也可以使子进程sleep(5)
+        msg_buf buf;
+        for (int i = 1; i < 10; ++i)
         {
-            if (ret = kill(pid, SIGKILL) == 0) // 杀死子进程
+            if (msgrcv(msgid, (void*)&buf, MAX_TEXT_SIZE, i, 0) == -1) // 这里设置i不为0,因此会接收对应的消息序号,如果是0,则每次都接收消息队列的头一个
             {
-                printf("kill child process");
+                perror("msgrcv fail");
+                exit(1);
             }
-            else
-            {
-                perror("kill child process fail");
-            }
+            printf("get the msg: %s\n", buf.mtext);
         }
+        if (msgctl(msgid, IPC_RMID, 0) == -1)
+        {
+            perror("msgctl fail");
+            exit(1);
+        }
+        exit(0);
     }
 }

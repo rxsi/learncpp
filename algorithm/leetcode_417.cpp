@@ -2,6 +2,7 @@
 using namespace std;
 #include <unordered_map>
 #include <unordered_set>
+#include <iostream>
 
 class Solution {
 public:
@@ -10,6 +11,7 @@ public:
         int n = heights[0].size();
         unordered_map<int, vector<int>> result_cache;
         vector<vector<int>> res;
+        unordered_set<int> visited;
         for (int i = 0; i < m; ++i)
         {
             for (int j = 0; j < n; ++j)
@@ -23,10 +25,10 @@ public:
                 else
                 {
                     vector<int> temp(2);
-                    unordered_set<int> visited;
                     dfs(result_cache, i, j, m, n, temp, visited, heights);
                     if (temp[0] && temp[1]) res.push_back({i, j});
                     result_cache[pos] = temp;
+                    cout << pos << " " << i << " " << j << endl;
                 }
             }
         }
@@ -38,7 +40,12 @@ public:
         if (temp[0] && temp[1]) return;
         if (x == 0 || y == 0) temp[0] = 1;
         if (x == m-1 || y == n-1) temp[1] = 1;
-        if (x < 0 || x > m-1 || y < 0 || y > n-1 || visited.find(x*(n+1)+y) != visited.end()) return;
+        if (x < 0 || x > m-1 || y < 0 || y > n-1) return;
+        int pos = x*(n+1)+y;
+        cout << "pos = " << pos << " " << x << " " << y << endl;
+        cout << "visited ";
+        for (auto& v: visited) cout << v << " ";
+        cout << endl; 
         for (auto& kv : pos_list)
         {
             int newX = x + kv[0], newY = y + kv[1];
@@ -72,5 +79,11 @@ int main()
 {
     Solution s;
     vector<vector<int>> vec{{1,2,2,3,5},{3,2,3,4,4},{2,4,5,3,1},{6,7,1,4,5},{5,1,1,2,4}};
-    s.pacificAtlantic(vec);
+    vector<vector<int>> res;
+    res = s.pacificAtlantic(vec);
+    cout << "res ";
+    for (auto& vec: res)
+    {
+        cout << vec[0] << " " << vec[1] << endl;
+    }
 }
