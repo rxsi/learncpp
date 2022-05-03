@@ -1,3 +1,16 @@
+/*
+给你个数字n，一个数组array，从array里面找数字，拼成小于n的最大数
+输入:
+23123
+[2,4,9]
+输出：22999
+
+999
+[2,4,9]
+输出：994
+*/
+
+
 #include <ios>
 #include <iostream>
 #include <vector>
