@@ -52,9 +52,20 @@ b. 对数据进行拷贝
 //     //     return *this;
 //     // }
 
-//     Base& operator=(Base base){
-//         cout << "Base& operator=(Base base)" << endl;
-//         d 
+//     Base& operator=(const Base& base){ // 版本2:先确保能够成功创建新数据,再释放旧数据,这样确保了安全性
+//         cout << "Base& operator=(const Base& base)" << endl; 
+//         if (this != &base){
+//             int newSize = base.size;
+//             int *newPtr = new int[size];
+//             for (int i = 0; i < newSize; ++i)
+//             {
+//                 newPtr = base.ptr[i];
+//             }
+//             delete[] ptr;
+//             size = newSize;
+//             ptr = newPtr;
+//         }
+//         return *this;
 //     }
 
 //     Base(Base&& base){
@@ -64,7 +75,7 @@ b. 对数据进行拷贝
 //         base.ptr = nullptr;
 //     }
 
-//     Base& operator=(Base&& base){
+//     Base& operator=(Base&& base){ // 兼容右值的情况
 //         cout << "Base& operator=(Base&& base)" << endl;
 //         if (this != &base){
 //             size = base.size;
@@ -74,18 +85,20 @@ b. 对数据进行拷贝
 //         }
 //         return *this;
 //     }
+
+//     Base& operator=(Base base){...} // 如果使用拷贝的形式,那么可以省略拷贝赋值和移动赋值,但是性能不好.
 // };
 
 // // g++ -fno-elide-constructors copy_and_swap.cpp -o copy_and_swap
 // // 禁止编译器优化
-// int main(){
-
-// }
+// 用上面的实现分别需要拷贝赋值和移动赋值,比较繁琐,并且要时刻注意自赋值处理和异常处理
 
 #include <iostream>
 #include <string>
+
 namespace A{
 
+int a = 1, b = 2;
 class ClassTest{
 public:
     friend std::ostream& operator<<(std::ostream &os, const ClassTest& s);
@@ -119,6 +132,31 @@ void swap(ClassTest &a, ClassTest &b) noexcept
     std::cout << "use user swap" << std::endl;
     a.swap(b);
 }
+
+void swap(int a, int b)
+{
+    std::cout << "use user swap" << std::endl;
+}
+
+} 
+
+void Fun(int num)
+{
+    std::cout << "global Fun(int num)" << std::endl;
+}
+
+namespace B
+{
+    int i = 10;
+    void Fun(int num)
+    {
+        std::cout << "B::Fun(int num)" << std::endl;
+    }
+
+    void swap(int a, int b)
+    {
+        std::cout << "use B::swap" << std::endl;
+    }   
 }
 
 void swap(A::ClassTest &a, A::ClassTest &b) noexcept
@@ -126,16 +164,26 @@ void swap(A::ClassTest &a, A::ClassTest &b) noexcept
     std::cout << "use global swap" << std::endl;
     a.swap(b);
 }
+
+void swap(int a, int b) noexcept
+{
+    std::cout << "use global swap" << std::endl;
+}
+
+
 int main(int argc, char const *argv[])
 {
-    A::ClassTest ct1("ct1");
-    A::ClassTest ct2("ct2");
-    std::cout << ct1 << std::endl;
-    std::cout << ct2 << std::endl;
+    // using B::swap;
+    // A::ClassTest ct1("ct1");
+    // A::ClassTest ct2("ct2");
+    // std::cout << ct1 << std::endl;
+    // std::cout << ct2 << std::endl;
+    // int a = 1, b = 2;
     using std::swap; // 如果这里加上了,那么可以顺利查找到user定义的,因为它屏蔽掉了全局作用域的(global). 如果注释掉,会同时查找到global和user的,从而编译错误
-    swap(ct1, ct2);
-    std::cout << ct1 << std::endl;
-    std::cout << ct2 << std::endl;
+    swap(A::a, A::b); 
+    // std::cout << ct1 << std::endl;
+    // std::cout << ct2 << std::endl;
+    // Fun(B::i);
     return 0;
 }
 /*
@@ -146,6 +194,12 @@ int main(int argc, char const *argv[])
 3) 任何非函数或函数模板的声明（例如函数对象或另一变量，其名字与正在查找的函数名冲突）
 
 也就是说:当经过普通的名字查找后（没有包括ADL），如果候选函数中有类成员、块作用域中的函数声明（不包括using声明引入的）、其他同名的函数对象或变量名，则不启动ADL查找了。
+否则对于函数调用的每个参数,都会进行检查
+1) 对于基本类型,如int\float\char等,不参与检查!!!!!!
+2) 如果是类对象\类模板类型,对于类内部和类定义的命名空间都会检查
+3) 如果是枚举类型,对应的类或者命名空间也会检查
+4) 指向某个类型的指针,那么对应类型也会被检查(当然如果目标类型是基本类型,实际上还是无效)
+5) 函数对象/成员函数类型,对应的类和命名空间也会检查
 
 当进入ADL查找时:
 1. 不使用namespace A{}将ClassTest封装:
