@@ -453,83 +453,119 @@ msgrcv函数的msgsz参数如果小于所要接收的消息的mtext长度,则如
 // }
 
 // posix消息队列
-#include <stdio.h>
-#include <mqueue.h>
-#include <sys/stat.h>
-#include <stdlib.h>
+// #include <stdio.h>
+// #include <mqueue.h>
+// #include <sys/stat.h>
+// #include <stdlib.h>
+// #include <unistd.h>
+// #include <algorithm>
+
+// #define PATH "/tmp" // 必须以/开头且只能含有一个/  如果想要指定诸如 /tmp/my_mq 这种格式,则需要使用 mount 挂载路径
+
+
+// int main()
+// {
+
+//     mqd_t msgid;
+//     int text_size = 50;
+//     msgid = mq_open(PATH, O_RDWR | O_CREAT, S_IRWXU | S_IRWXG, NULL); // 创建消息队列
+//     if (msgid == (mqd_t)-1)
+//     {
+//         perror("mq_open error");
+//         exit(1);
+//     }
+
+//     mq_attr msg_attr;
+//     if (mq_getattr(msgid, &msg_attr) == -1) // 获取消息队列属性
+//     {
+//         perror("mq_getattr error");
+//         exit(1);
+//     }
+
+
+//     pid_t pid = fork();
+//     if (pid < 0)
+//     {
+//         printf("fork error");
+//         exit(0); // exit(0)是正常退出程序,exit(1)是非正常退出程序.exit的退出会直接删除进程,并将信号返回到OS
+//     }
+
+//     if (pid == 0)
+//     {
+//         for (int i = 1; i < 10; ++i)
+//         {
+//             sleep(1);
+//             char text[text_size] = "write msg from child process!" ;
+//             if (mq_send(msgid, (char*)&text, text_size, i) == -1)
+//             {
+//                 perror("mq_send error");
+//                 exit(1);
+//             }
+//         }
+//     }
+//     else
+//     {
+//         int size = std::max(text_size, (int)msg_attr.mq_msgsize);
+//         printf("size = %d\n", size); // 默认是8192
+//         for (int i = 1; i < 10; ++i)
+//         {
+//             char buf[text_size];
+//             unsigned int priop; // 存放优先级的指针
+//             if (mq_receive(msgid, (char*)&buf, size, &priop) == -1)
+//             {
+//                 perror("mq_receive error");
+//                 exit(1);
+//             }
+//             printf("get the msg: %s, priority: %d\n", buf, priop);
+//         }
+
+//         if (mq_close(msgid) == -1)
+//         {
+//             perror("mq_close error");
+//             exit(1);
+//         }
+
+//         if (mq_unlink(PATH) == -1)
+//         {
+//             perror("mq_unlink error");
+//             exit(1);
+//         }
+//     }
+//     return 0;
+// }
+
+
+/*
+mmap内存共享
+*/
+#include <sys/mman.h>
 #include <unistd.h>
-#include <algorithm>
+#include <fcntl.h>
+#include <semaphore.h>
+#include <iostream>
+#include <string.h>
 
-#define PATH "/tmp" // 必须以/开头且只能含有一个/  如果想要指定诸如 /tmp/my_mq 这种格式,则需要使用 mount 挂载路径
-
+#define PATH "/tmp/mmap_file"
+#define SEM_PATH "/tmp"
+#define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+int SIZE = 100;
 
 int main()
 {
-
-    mqd_t msgid;
-    int text_size = 50;
-    msgid = mq_open(PATH, O_RDWR | O_CREAT, S_IRWXU | S_IRWXG, NULL); // 创建消息队列
-    if (msgid == (mqd_t)-1)
-    {
-        perror("mq_open error");
-        exit(1);
-    }
-
-    mq_attr msg_attr;
-    if (mq_getattr(msgid, &msg_attr) == -1) // 获取消息队列属性
-    {
-        perror("mq_getattr error");
-        exit(1);
-    }
-
-
+    char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0); // 当指定了MAP_ANONYMOUS属性时，代表不需要使用file，因此fd填入-1即可，用在有亲缘关系的进程间的通信
     pid_t pid = fork();
-    if (pid < 0)
-    {
-        printf("fork error");
-        exit(0); // exit(0)是正常退出程序,exit(1)是非正常退出程序.exit的退出会直接删除进程,并将信号返回到OS
-    }
-
     if (pid == 0)
     {
-        for (int i = 1; i < 10; ++i)
-        {
-            sleep(1);
-            char text[text_size] = "write msg from child process!" ;
-            if (mq_send(msgid, (char*)&text, text_size, i) == -1)
-            {
-                perror("mq_send error");
-                exit(1);
-            }
-        }
+        char s[SIZE] = "child string";
+        memcpy(ptr, s, SIZE);
     }
-    else
+    else if (pid > 0)
     {
-        int size = std::max(text_size, (int)msg_attr.mq_msgsize);
-        printf("size = %d\n", size); // 默认是8192
-        for (int i = 1; i < 10; ++i)
-        {
-            char buf[text_size];
-            unsigned int priop; // 存放优先级的指针
-            if (mq_receive(msgid, (char*)&buf, size, &priop) == -1)
-            {
-                perror("mq_receive error");
-                exit(1);
-            }
-            printf("get the msg: %s, priority: %d\n", buf, priop);
-        }
-
-        if (mq_close(msgid) == -1)
-        {
-            perror("mq_close error");
-            exit(1);
-        }
-
-        if (mq_unlink(PATH) == -1)
-        {
-            perror("mq_unlink error");
-            exit(1);
-        }
+        sleep(1); // 时子进程先写入
+        char* ret = new char[SIZE];
+        memcpy(ret, ptr, SIZE);
+        std::cout << ret << std::endl;
+        munmap(ptr, SIZE);
     }
     return 0;
 }
