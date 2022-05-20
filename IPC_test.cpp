@@ -538,34 +538,76 @@ msgrcv函数的msgsz参数如果小于所要接收的消息的mtext长度,则如
 /*
 mmap内存共享
 */
+// #include <sys/mman.h>
+// #include <unistd.h>
+// #include <fcntl.h>
+// #include <semaphore.h>
+// #include <iostream>
+// #include <string.h>
+
+// #define PATH "/home/tmp/mmap_text.txt"
+// #define SEM_PATH "/tmp"
+// #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+// int SIZE = 100;
+
+// int main()
+// {
+//     char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0); // 当指定了MAP_ANONYMOUS属性时，代表不需要使用file，因此fd填入-1即可，用在有亲缘关系的进程间的通信
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+//         char s[SIZE] = "child string";
+//         memcpy(ptr, s, SIZE);
+//     }
+//     else if (pid > 0)
+//     {
+//         sleep(1); // 时子进程先写入
+//         char* ret = new char[SIZE];
+//         memcpy(ret, ptr, SIZE);
+//         std::cout << ret << std::endl;
+//         munmap(ptr, SIZE);
+//     }
+//     return 0;
+// }
+
 #include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <semaphore.h>
 #include <iostream>
 #include <string.h>
+#include <sys/stat.h>
 
-#define PATH "/tmp/mmap_file"
+#define PATH "/tmp/mmap_text" // 注意该文件要存在
 #define SEM_PATH "/tmp"
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 int SIZE = 100;
 
+size_t getFileSize(const char* filename)
+{
+    struct stat st;
+    stat(filename, &st);
+    return st.st_size;
+}
+
 int main()
 {
-    char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0); // 当指定了MAP_ANONYMOUS属性时，代表不需要使用file，因此fd填入-1即可，用在有亲缘关系的进程间的通信
+    int fd = open(PATH, O_RDWR); // 这里的模式要是RDWR，同时可读写
+    int fileSize = getFileSize(PATH);
+    char* ptr = (char*)mmap(NULL, fileSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0); 
     pid_t pid = fork();
     if (pid == 0)
     {
-        char s[SIZE] = "child string";
-        memcpy(ptr, s, SIZE);
+        char s[fileSize] = "child string";
+        memcpy(ptr, s, fileSize);
     }
     else if (pid > 0)
     {
-        sleep(1); // 时子进程先写入
-        char* ret = new char[SIZE];
-        memcpy(ret, ptr, SIZE);
+        sleep(1); // 让子进程先写入
+        char* ret = new char[fileSize];
+        memcpy(ret, ptr, fileSize);
         std::cout << ret << std::endl;
-        munmap(ptr, SIZE);
+        munmap(ptr, fileSize);
     }
     return 0;
 }
