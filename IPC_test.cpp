@@ -608,6 +608,7 @@ int main()
         memcpy(ret, ptr, fileSize);
         std::cout << ret << std::endl;
         munmap(ptr, fileSize);
+        close(fd);
     }
     return 0;
 }
