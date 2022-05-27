@@ -429,24 +429,35 @@ int main(){
     // for (auto& kv: myMap) cout << kv.first << " " << kv.second << endl;
 
     // unordered_map<pair<int, int>, int> myMap; // 因为不接受pair作为key,因此这种方式的定义会报错,需要添加自定义的hash函数
-    unordered_map<pair<int, int>, int, pair_hash> myMap;
-    myMap[{1, 1}] = 1;
-    myMap[{2, 2}] = 2;
-    myMap[{2, 1}] = 3;
-    myMap[{1, 2}] = 4;
-    for (auto& kv: myMap)
-    {
-        std::cout << kv.first.first << " " << kv.first.second << " " << kv.second << std::endl;
-    }
+    // unordered_map<pair<int, int>, int, pair_hash> myMap;
+    // myMap[{1, 1}] = 1;
+    // myMap[{2, 2}] = 2;
+    // myMap[{2, 1}] = 3;
+    // myMap[{1, 2}] = 4;
+    // for (auto& kv: myMap)
+    // {
+    //     std::cout << kv.first.first << " " << kv.first.second << " " << kv.second << std::endl;
+    // }
 
-    map<pair<int, int>, int> myMap2; // map可以直接把pair当作key,而且他可以接收的是自定义的排序算法,而不是hash算法
-    map<pair<int, int>, int, myCmp2> myMap3;
-    myMap2[{1, 1}] = 1;
-    myMap2[{2, 2}] = 2;
-    myMap2[{2, 1}] = 3;
-    myMap2[{1, 2}] = 4;
-    for (auto& kv: myMap2)
-    {
-        std::cout << kv.first.first << " " << kv.first.second << " " << kv.second << std::endl;
-    }
+    // map<pair<int, int>, int> myMap2; // map可以直接把pair当作key,而且他可以接收的是自定义的排序算法,而不是hash算法
+    // map<pair<int, int>, int, myCmp2> myMap3;
+    // myMap2[{1, 1}] = 1;
+    // myMap2[{2, 2}] = 2;
+    // myMap2[{2, 1}] = 3;
+    // myMap2[{1, 2}] = 4;
+    // for (auto& kv: myMap2)
+    // {
+    //     std::cout << kv.first.first << " " << kv.first.second << " " << kv.second << std::endl;
+    // }
+
+    map<int, int> myMap;
+    myMap[5] = 1;
+    myMap[3] = 2;
+    myMap[4] = 4;
+    myMap[1] = 5;
+    myMap[6] = 6;
+    myMap[11] = 7;
+    for (auto& kv: myMap) std::cout << kv.first << " " << kv.second << std::endl;
+    auto iter = myMap.lower_bound(2);
+    std::cout << iter->first << std::endl;
 } 
