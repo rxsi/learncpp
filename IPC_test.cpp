@@ -275,7 +275,7 @@ mode参数指定了文件权限和将被创建的文件类型(再次情况下是
 /*
 消息队列
 #include <sys/msg.h>
-消息队列提供了一种从一个进程向另一个进程发送一个数据块的方法,消息队列是消息的连接表,存放在内核中并由消息队列标识符标识.
+消息队列提供了一种从一个进程向另一个进程发送一个数据块的方法,消息队列是消息的链接表,存放在内核中并由消息队列标识符标识.
 每个数据块都含有一个类型,接收进程可以独立的接收含有不同类型的数据结构,且具有最大长度限制
 消息队列可以在没有接收进程的情况下,发送消息给消息队列,避免了管道/FIFO的同步和阻塞问题(管道类型要求至少存在一个读端和写端)
 
@@ -347,7 +347,9 @@ int msgsnd(int msqid, const void* msgp, size_t msgz, int msgflg);
 msgrcv函数:从消息队列中取出消息,调用者需要有读权限
 ssize_t msgrcv(int msqid, void* msgp, size_t msgsz, long msgtyp, int msgflg);
 
-void* msgp 指向结构体,用以
+
+
+void* msgp 指向结构体:
 struct msgbuf
 {
     long mtype; // 消息类型,需要>0
@@ -376,76 +378,352 @@ msgrcv函数的msgsz参数如果小于所要接收的消息的mtext长度,则如
 当读取成功时,msgrcv函数返回对应的字节数,否则返回-1
 */
 
-#include <sys/msg.h>
-#include <sys/types.h>
+// #include <sys/msg.h>
+// #include <sys/types.h>
+// #include <unistd.h>
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <fcntl.h>
+// #include <string.h>
+// #include <iostream>
+
+// #define MAX_TEXT_SIZE 50
+
+// struct msg_buf
+// {
+//     long mtype;
+//     char mtext[MAX_TEXT_SIZE];
+// };
+
+// int main()
+// {
+
+//     int msgid = msgget((size_t)123, 0666 | IPC_CREAT);
+//     if (msgid == -1)
+//     {
+//         perror("msgget error");
+//         return 1; // 通过return的方式是把栈弹出,回到上层调用,这里在main函数起到退出进程的效果
+//     }
+
+//     pid_t pid = fork();
+//     if (pid < 0)
+//     {
+//         printf("fork error");
+//         exit(0); // exit(0)是正常退出程序,exit(1)是非正常退出程序.exit的退出会直接删除进程,并将信号返回到OS
+//     }
+
+//     if (pid == 0)
+//     {
+//         for (int i = 1; i < 10; ++i)
+//         {
+//             msg_buf buf;
+//             sleep(1);
+//             char text[MAX_TEXT_SIZE] = "write msg from child process!" ;
+//             buf.mtype = i; // 注意这里不能是0!!!!
+//             strcpy(buf.mtext, text); // 注意这里不能是buf.mtext = text;
+//             // 因为数组名在C语言中退化为常量指针,因此不能使用=号
+//             // 只能使用memcpy(字符数组是strcpy),或者使用循环赋值的方式
+
+//             if (msgsnd(msgid, &buf, MAX_TEXT_SIZE, 0) == -1)
+//             {
+//                 perror("msgsnd failed");
+//                 exit(1);
+//             }
+//         }
+//     }
+//     else
+//     {
+//         msg_buf buf;
+//         for (int i = 1; i < 10; ++i)
+//         {
+//             if (msgrcv(msgid, (void*)&buf, MAX_TEXT_SIZE, i, 0) == -1) // 这里设置i不为0,因此会接收对应的消息序号,如果是0,则每次都接收消息队列的头一个
+//             {
+//                 perror("msgrcv fail");
+//                 exit(1);
+//             }
+//             printf("get the msg: %s\n", buf.mtext);
+//         }
+//         if (msgctl(msgid, IPC_RMID, 0) == -1)
+//         {
+//             perror("msgctl fail");
+//             exit(1);
+//         }
+//         exit(0);
+//     }
+// }
+
+// posix消息队列
+// #include <stdio.h>
+// #include <mqueue.h>
+// #include <sys/stat.h>
+// #include <stdlib.h>
+// #include <unistd.h>
+// #include <algorithm>
+
+// #define PATH "/tmp" // 必须以/开头且只能含有一个/  如果想要指定诸如 /tmp/my_mq 这种格式,则需要使用 mount 挂载路径
+
+
+// int main()
+// {
+
+//     mqd_t msgid;
+//     int text_size = 50;
+//     msgid = mq_open(PATH, O_RDWR | O_CREAT, S_IRWXU | S_IRWXG, NULL); // 创建消息队列
+//     if (msgid == (mqd_t)-1)
+//     {
+//         perror("mq_open error");
+//         exit(1);
+//     }
+
+//     mq_attr msg_attr;
+//     if (mq_getattr(msgid, &msg_attr) == -1) // 获取消息队列属性
+//     {
+//         perror("mq_getattr error");
+//         exit(1);
+//     }
+
+
+//     pid_t pid = fork();
+//     if (pid < 0)
+//     {
+//         printf("fork error");
+//         exit(0); // exit(0)是正常退出程序,exit(1)是非正常退出程序.exit的退出会直接删除进程,并将信号返回到OS
+//     }
+
+//     if (pid == 0)
+//     {
+//         for (int i = 1; i < 10; ++i)
+//         {
+//             sleep(1);
+//             char text[text_size] = "write msg from child process!" ;
+//             if (mq_send(msgid, (char*)&text, text_size, i) == -1)
+//             {
+//                 perror("mq_send error");
+//                 exit(1);
+//             }
+//         }
+//     }
+//     else
+//     {
+//         int size = std::max(text_size, (int)msg_attr.mq_msgsize);
+//         printf("size = %d\n", size); // 默认是8192
+//         for (int i = 1; i < 10; ++i)
+//         {
+//             char buf[text_size];
+//             unsigned int priop; // 存放优先级的指针
+//             if (mq_receive(msgid, (char*)&buf, size, &priop) == -1)
+//             {
+//                 perror("mq_receive error");
+//                 exit(1);
+//             }
+//             printf("get the msg: %s, priority: %d\n", buf, priop);
+//         }
+
+//         if (mq_close(msgid) == -1)
+//         {
+//             perror("mq_close error");
+//             exit(1);
+//         }
+
+//         if (mq_unlink(PATH) == -1)
+//         {
+//             perror("mq_unlink error");
+//             exit(1);
+//         }
+//     }
+//     return 0;
+// }
+
+
+/*
+mmap内存共享
+*/
+// #include <sys/mman.h>
+// #include <unistd.h>
+// #include <fcntl.h>
+// #include <semaphore.h>
+// #include <iostream>
+// #include <string.h>
+
+// #define PATH "/home/tmp/mmap_text.txt"
+// #define SEM_PATH "/tmp"
+// #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+// int SIZE = 100;
+
+// int main()
+// {
+//     char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0); // 当指定了MAP_ANONYMOUS属性时，代表不需要使用file，因此fd填入-1即可，用在有亲缘关系的进程间的通信
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+//         char s[SIZE] = "child string";
+//         memcpy(ptr, s, SIZE);
+//     }
+//     else if (pid > 0)
+//     {
+//         sleep(1); // 时子进程先写入
+//         char* ret = new char[SIZE];
+//         memcpy(ret, ptr, SIZE);
+//         std::cout << ret << std::endl;
+//         munmap(ptr, SIZE);
+//     }
+//     return 0;
+// }
+
+// #include <sys/mman.h>
+// #include <unistd.h>
+// #include <fcntl.h>
+// #include <semaphore.h>
+// #include <iostream>
+// #include <string.h>
+// #include <sys/stat.h>
+
+// #define PATH "/tmp/mmap_text" // 注意该文件要存在，如果文件不存在，则会报错：Segmentation fault
+// #define SEM_PATH "/tmp"
+// #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+// int SIZE = 100;
+
+// size_t getFileSize(const char* filename)
+// {
+//     struct stat st;
+//     stat(filename, &st);
+//     return st.st_size;
+// }
+
+// int main()
+// {
+//     int fd = open(PATH, O_RDWR); // 这里的模式要是RDWR，同时可读写
+//     int fileSize = getFileSize(PATH);
+//     char* ptr = (char*)mmap(NULL, fileSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0); 
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+//         char s[fileSize] = "child string";
+//         memcpy(ptr, s, fileSize);
+//     }
+//     else if (pid > 0)
+//     {
+//         sleep(1); // 让子进程先写入
+//         char* ret = new char[fileSize];
+//         memcpy(ret, ptr, fileSize);
+//         std::cout << ret << std::endl;
+//         munmap(ptr, fileSize);
+//         close(fd);
+//     }
+//     return 0;
+// }
+
+
+/*
+Posix共享内存
+*/
+
+// #include <sys/mman.h>
+// #include <unistd.h>
+// #include <fcntl.h>
+// #include <semaphore.h>
+// #include <iostream>
+// #include <string.h>
+// #include <sys/stat.h>
+
+// // 编译：g++ IPC_test.cpp -o bin/IPC_test -lrt
+
+// #define PATH "/mmap_text" // 使用open+mmap是要求该文件一定存在，不计较包含了多少个/。
+// // 使用shm_open + mmap则一定只能包含一个/，因此"/tmp/mmap_text"是错误的，
+// int SIZE = 100;
+
+// int main()
+// {
+//     int fd = shm_open(PATH, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+//     int res = ftruncate(fd, SIZE); // 默认创建之后的size是0,因此一定要先调用ftruncate调整大小
+//     if (res == -1)
+//     {
+//         perror("ftruncate error");
+//         exit(1);
+//     }
+//     char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0); 
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+//         char s[SIZE] = "child string";
+//         memcpy(ptr, s, SIZE);
+//     }
+//     else if (pid > 0)
+//     {
+//         sleep(1); // 让子进程先写入
+//         char* ret = new char[SIZE];
+//         memcpy(ret, ptr, SIZE);
+//         std::cout << ret << std::endl;
+//         munmap(ptr, SIZE);
+//         close(fd);
+//         shm_unlink(PATH);
+//     }
+//     return 0;
+// }
+
+/*
+System V共享内存区
+*/
+#include <sys/shm.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <fcntl.h>
-#include <string.h>
+#include <semaphore.h>
 #include <iostream>
+#include <string.h>
+#include <sys/stat.h>
 
-#define MAX_TEXT_SIZE 50
-
-struct msg_buf
-{
-    long mtype;
-    char mtext[MAX_TEXT_SIZE];
-};
+// #define PATH "/tmp/system_v_shm" // 这里文件不要求只有一个/,但是要求有文件的权限,因此使用/tmp/system_v_shm需要使用sudo的方式运行
+#define PATH "/home/rxsi/system_v_shm" // 这里可以
+int SIZE = 100;
 
 int main()
 {
-
-    int msgid = msgget((size_t)123, 0666 | IPC_CREAT);
-    if (msgid == -1)
+    key_t key = ftok(PATH, 255); // 对应的文件路径必须要存在,后面的255实际只会用上后8位
+    if (key == -1)
     {
-        perror("msgget error");
-        return 1; // 通过return的方式是把栈弹出,回到上层调用,这里在main函数起到退出进程的效果
+        perror("ftok error");
+        exit(1);
     }
-
+    int shmid = shmget(key, SIZE, IPC_CREAT | SHM_R | SHM_W); // 可以使用IPC_PRIVATE由内核自行分配
+    if (shmid == -1)
+    {
+        perror("shmget error");
+        exit(1);
+    }
     pid_t pid = fork();
-    if (pid < 0)
-    {
-        printf("fork error");
-        exit(0); // exit(0)是正常退出程序,exit(1)是非正常退出程序.exit的退出会直接删除进程,并将信号返回到OS
-    }
-
     if (pid == 0)
     {
-        for (int i = 1; i < 10; ++i)
+        struct shmid_ds buff;
+        char *ptr = (char*)shmat(shmid, nullptr, 0);
+        shmctl(shmid, IPC_STAT, &buff);
+        char s[SIZE] = "child string";
+        memcpy(ptr, s, SIZE);
+        int res = shmdt(ptr);
+        if (res == -1)
         {
-            msg_buf buf;
-            sleep(1);
-            char text[MAX_TEXT_SIZE] = "write msg from child process!" ;
-            buf.mtype = i; // 注意这里不能是0!!!!
-            strcpy(buf.mtext, text); // 注意这里不能是buf.mtext = text;
-            // 因为数组名在C语言中退化为常量指针,因此不能使用=号
-            // 只能使用memcpy(字符数组是strcpy),或者使用循环赋值的方式
-
-            if (msgsnd(msgid, &buf, MAX_TEXT_SIZE, 0) == -1)
-            {
-                perror("msgsnd failed");
-                exit(1);
-            }
-        }
-    }
-    else
-    {
-        msg_buf buf;
-        for (int i = 1; i < 10; ++i)
-        {
-            if (msgrcv(msgid, (void*)&buf, MAX_TEXT_SIZE, i, 0) == -1) // 这里设置i不为0,因此会接收对应的消息序号,如果是0,则每次都接收消息队列的头一个
-            {
-                perror("msgrcv fail");
-                exit(1);
-            }
-            printf("get the msg: %s\n", buf.mtext);
-        }
-        if (msgctl(msgid, IPC_RMID, 0) == -1)
-        {
-            perror("msgctl fail");
+            perror("shmdt error");
             exit(1);
         }
-        exit(0);
     }
+    else if (pid > 0)
+    {
+        sleep(1); // 让子进程先写入
+        char *ptr = (char*)shmat(shmid, nullptr, 0);
+        char* ret = new char[SIZE];
+        memcpy(ret, ptr, SIZE);
+        std::cout << ret << std::endl;
+        int res = shmdt(ptr);
+        if (res == -1)
+        {
+            perror("shmdt error");
+            exit(1);
+        }
+        res = shmctl(shmid, IPC_RMID, nullptr);
+        if (res == -1)
+        {
+            perror("shmctl error");
+            exit(1);
+        }
+    }
+    return 0;
 }
