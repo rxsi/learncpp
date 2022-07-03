@@ -3,7 +3,15 @@
 #include <queue>
 using namespace std;
 
-#define M 99999
+/*
+如果使用Python实现将会更加容易，因为Python可以直接更新优先队列中的数，然后再调整堆即可
+该算法是无法处理负权边的，因为我们每次选点都是基于：当前未找到的最短路的点中，距离源节点最近的点都是已经无法继续松弛的了
+而如果存在负权边，比如[[0, 2, 3], [M, 0, M], [M, -2, 0]]，如果根据dijkstra的规则，首先计算的点将会是1，而其实0 -> 2 -> 1才是真正最短的距离
+当前算法自然也就不可以处理负权环的问题了。
+*/
+
+#define M INT_MAX/2
+
 
 vector<int> dijkstraFinder(int point, vector<vector<int>>& dist)
 {

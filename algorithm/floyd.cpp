@@ -2,8 +2,12 @@
 #include <vector>
 using namespace std;
 
-#define M 99999
+#define M INT_MAX/2
 
+/*
+该算法可以计算有负权的边，因为他对于每一组点的计算都是通过遍历所有点之后才确定的，因此有负权的边最终也会被正确的计算
+但是，他不可以计算有负权环的图，因为每次都走负权环，则每次的路径都在减少，最终是无穷小
+*/
 
 vector<vector<int>> floydFinder(vector<vector<int>>& dist)
 {
