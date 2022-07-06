@@ -1,5 +1,5 @@
 #include <stdio.h>
-// #include <stdlib.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
@@ -7,9 +7,11 @@
 // #include <sys/stat.h>
 // #include <sys/types.h>
 #include <sys/mman.h>
+#include <atomic>
 
 #define SHM_NAME_LEN 1024
 #define IS_POT(x) ((x) && !((x) & (x)-1))
+#define MEMORY_BARRIER __sync_synchronize()
 
 template <typename T>
 class LockFreeQueue
@@ -22,8 +24,86 @@ public:
         memset(shm_name, 0, sizeof(shm_name)); // string.h
         createQueue(name, size);
     }
-blog.51cto.com/quantfabric/2588193
+
     ~LockFreeQueue()
+    {
+        if(shm_name[0] == 0)
+        {
+            delete[] m_buffer;
+            m_buffer = NULL;
+        }
+        else
+        {
+            if (munmap(m_buffer, m_size * sizeof(T)) == -1)
+            {
+                perror("mnumap err");
+            }
+            if (shm_unlink(shm_name) == -1)
+            {
+                perror("shm_unlink err");
+            }
+        }
+    }
+
+    bool isFull() const
+    {
+#ifdef USE_POT
+        return m_head == (m_tail + 1) & (m_size - 1);
+#else
+        return m_head == (m_tail + 1) % m_size;
+#endif
+    }
+
+    bool isEmpty() const
+    {
+        return m_head == m_tail;
+    }
+
+    unsigned int front() const
+    {
+        return m_head;
+    }
+
+    unsigned int tail() const
+    {
+        return m_tail;
+    }
+
+    bool push(const T& value)
+    {
+#ifdef USE_LOCK
+        m_spinLock.spinlock_lock();
+#endif
+        if(isFull())
+        {
+#ifdef USE_LOCK
+            m_spinLock.spinlock_unlock();
+#endif
+            return false;
+        }
+        memcpy(m_buffer + m_tail, &value, sizeof(T));
+#ifdef USE_MB
+        MEMORY_BARRIER;
+#endif
+
+#ifdef USE_POT
+        m_tail = (m_tail + 1) & (m_size - 1);
+#else
+        m_tail = (m_tail + 1) % m_size;
+#endif
+
+#ifdef USE_LOCK
+        m_spinLock.spinlock_unlock();
+#endif
+        return true;
+    }
+
+    bool pop(T& value)
+    {
+#ifdef USE_LOCK
+        m_spinLock.spinlock_lock();
+#endif
+    }
 
 protected:
     virtual void createQueue(const char* name, unsigned int size)
@@ -81,6 +161,20 @@ protected:
         size |= size >> 32;
         return size + 1;
     }
+
+    typedef struct 
+    {
+        int m_lock;
+        inline void spinlock_init()
+        {
+            m_lock = 0;
+        }
+        inline void spinlock_lock()
+        {
+            while(!compare_exchange_weak())
+        }
+    };
+    
 
 private:
     char shm_name[SHM_NAME_LEN];
