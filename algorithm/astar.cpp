@@ -83,12 +83,12 @@ int aStar::_calG(const Map& map, int dest_x, int dest_y, int weight)
 
 vector<pair<int, int>> aStar::search(const Map& map, int start_x, int start_y, int end_x, int end_y)
 {
+    _maxX = map.size();
+    _maxY = map[0].size();
     if (!_isValid(map, start_x, start_y) or !_isValid(map, end_x, end_y)) // 起始/终点坐标异常
     {
         return {};
     }
-    _maxX = map.size();
-    _maxY = map[0].size();
     unordered_map<int, Node*> nodeMap;
     Node* startNode = new Node(start_x, start_y);
     nodeMap[startNode->x + _maxX * startNode->y] = startNode; // x + maxX * y 这种方式可以保证x和y计算出来的值是唯一的
@@ -148,6 +148,7 @@ vector<pair<int, int>> aStar::search(const Map& map, int start_x, int start_y, i
             }
         }
     }
+    cout << "errrrrrrrrr" << endl;
     return {}; // 没有找到路径
 }
 
@@ -169,7 +170,7 @@ int main()
     vector<vector<int>> map{ // -1表示阻挡,其他数值表示当前点的权重值,值越大代表地形越"难走",优先级越低
         {-1,    -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1},
         {-1,    0,      0,      0,      0,      0,      1,      0,      -1,     -1},
-        {-1,    0,      0,      0,      0,      0,      1,      0,      -1,     -1},
+        {-1,    20,      0,      0,      0,      0,      1,      0,      -1,     -1},
         {-1,    0,      -1,     -1,     -1,     -1,     -1,     -1,     0,      -1},
         {-1,    0,      0,      0,      0,      0,      1,      0,      -1,     -1},
         {-1,    0,      0,      0,      0,      0,      1,      1,      0,      -1},
