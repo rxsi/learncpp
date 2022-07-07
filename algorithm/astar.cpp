@@ -31,7 +31,7 @@ private:
         int h; // h值
         Node* parent; // 父节点
         bool close; // 是否已经在close中，true是，false否
-        Node(int x, int y): x(x), y(y){}
+        Node(int x, int y): x(x), y(y), close(false), parent(nullptr){}
     };
     struct cmp
     {
@@ -44,7 +44,7 @@ private:
 
 int aStar::D = 10;
 int aStar::DD = 14;
-vector<pair<int, int>> path{
+vector<pair<int, int>> aStar::path{
     /*
     搜索节点周围的点
     按照八个方位搜索
@@ -177,9 +177,10 @@ int main()
     };
     aStar a;
     auto path = a.search(map, 1, 1, 5, 7);
-    for (auto & p: path)
+    for (int i = path.size()-1; i >= 0; --i)
     {
-        cout << "(" << p.first << ", " << p.second << ")" << "=> ";
-    } 
+        cout << "(" << path[i].first << ", " << path[i].second << ")";
+        if (i != 0) cout << " => ";
+    }
     cout << endl;
 }
