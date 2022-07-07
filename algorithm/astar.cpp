@@ -37,7 +37,7 @@ private:
     {
         bool operator()(const Node* node1, const Node* node2)
         {
-            return node1->g + node1->h < node2->g + node2->h;
+            return node1->g + node1->h > node2->g + node2->h;
         }
     };
 };
@@ -148,7 +148,6 @@ vector<pair<int, int>> aStar::search(const Map& map, int start_x, int start_y, i
             }
         }
     }
-    cout << "errrrrrrrrr" << endl;
     return {}; // 没有找到路径
 }
 
@@ -169,15 +168,15 @@ int main()
     // };
     vector<vector<int>> map{ // -1表示阻挡,其他数值表示当前点的权重值,值越大代表地形越"难走",优先级越低
         {-1,    -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1},
-        {-1,    0,      0,      0,      0,      0,      1,      0,      -1,     -1},
-        {-1,    20,      0,      0,      0,      0,      1,      0,      -1,     -1},
-        {-1,    0,      -1,     -1,     -1,     -1,     -1,     -1,     0,      -1},
+        {-1,    0,      5,      0,      0,      0,      1,      0,      -1,     -1},
+        {-1,    0,      10,      0,      0,      0,      1,      0,      -1,     -1},
+        {-1,    10,      -1,     -1,     -1,     -1,     -1,     -1,     0,      -1},
         {-1,    0,      0,      0,      0,      0,      1,      0,      -1,     -1},
         {-1,    0,      0,      0,      0,      0,      1,      1,      0,      -1},
         {-1,    -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1,     -1}
     };
     aStar a;
-    auto path = a.search(map, 1, 1, 5, 7);
+    auto path = a.search(map, 1, 1, 5, 8);
     for (int i = path.size()-1; i >= 0; --i)
     {
         cout << "(" << path[i].first << ", " << path[i].second << ")";
