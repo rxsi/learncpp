@@ -15,6 +15,8 @@ using namespace std;
 2.如果图是邻接表，一般是稀疏图，因此使用优先队列就可以优化，因为我们可以根据点直接拿到他能到达的所有点，一般这么定义：vector<vector<pair<int, int>>> path; path里面包含的就是key能够到达的所有点的列表
 见https://leetcode.cn/problems/network-delay-time/
 
+采用贪心算法的思想，时间复杂度是O(V*V），V是顶点数
+
 */
 
 #define M INT_MAX/2
