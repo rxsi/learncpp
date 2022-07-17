@@ -450,14 +450,19 @@ int main(){
     //     std::cout << kv.first.first << " " << kv.first.second << " " << kv.second << std::endl;
     // }
 
-    map<int, int> myMap;
-    myMap[5] = 1;
-    myMap[3] = 2;
-    myMap[4] = 4;
-    myMap[1] = 5;
-    myMap[6] = 6;
-    myMap[11] = 7;
-    for (auto& kv: myMap) std::cout << kv.first << " " << kv.second << std::endl;
-    auto iter = myMap.lower_bound(2);
-    std::cout << iter->first << std::endl;
+    // map<int, int> myMap;
+    // myMap[5] = 1;
+    // myMap[3] = 2;
+    // myMap[4] = 4;
+    // myMap[1] = 5;
+    // myMap[6] = 6;
+    // myMap[11] = 7;
+    // for (auto& kv: myMap) std::cout << kv.first << " " << kv.second << std::endl;
+    // auto iter = myMap.lower_bound(2);
+    // std::cout << iter->first << std::endl;
+
+    vector<int> a{0, 1, 2, 3, 4, 5};
+    vector<int> b(a.begin() + 1, a.begin() + 2);
+    cout << b.size() << endl;
+    // cout << b[0] << endl;
 } 
