@@ -236,13 +236,16 @@ int main(){
     // std::priority_queue<int> myPriorityQueue3(std::less<int>(), myVector); // 可以通过指定比较函数的方式,直接把容器传进来
     // std::priority_queue<int, std::vector<int>, std::greater<int>> myPriorityQueue4(std::greater<int>(), myVector); // 默认是less,要修改为greater则需要把所有的参数都列出来
 
-    // // 关于pair的比较,默认会先比较元素1, 再比较元素2
-    // std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, std::less<pair<int, int>>> myPriorityQueue5;
-    // for (int i = 0; i < 5; i++)
-    // {
-    //     // myPriorityQueue5.push(pair<int, int>(i, i+1));
-    //     myPriorityQueue5.emplace(i, i+1); // 使用emplace时只需要传入类型的参数,如果直接传入pair<int, int>(i, i+1)则实际和push没有差别
-    // }
+    // // 关于pair的比较,默认会先比较元素1, 再比较元素2 // std::less<pair<int, int>>
+    // 对于优先队列来说，默认是less函数，即比较的是A < B，按照一般的比较函数定义来说，这意味着A在B之前，也就是小的在前，但是最后形成的却是大顶堆
+    // 这意味着top操作拿到的是大的那个值，和直觉相反。。。。。。
+    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, myCmp2> myPriorityQueue5;
+    for (int i = 0; i < 5; i++)
+    {
+        // myPriorityQueue5.push(pair<int, int>(i, i+1));
+        myPriorityQueue5.emplace(i, i+1); // 使用emplace时只需要传入类型的参数,如果直接传入pair<int, int>(i, i+1)则实际和push没有差别
+        cout << myPriorityQueue5.top().first << " "<< myPriorityQueue5.top().second << endl;
+    }
 
     // std::cout << "priority_queue_size = " << myPriorityQueue5.size() << std::endl;
     // std::cout << "priority_queue x = " << myPriorityQueue5.top().first << ", second = " << myPriorityQueue5.top().second << std::endl;
@@ -460,9 +463,4 @@ int main(){
     // for (auto& kv: myMap) std::cout << kv.first << " " << kv.second << std::endl;
     // auto iter = myMap.lower_bound(2);
     // std::cout << iter->first << std::endl;
-
-    vector<int> a{0, 1, 2, 3, 4, 5};
-    vector<int> b(a.begin() + 1, a.begin() + 2);
-    cout << b.size() << endl;
-    // cout << b[0] << endl;
 } 
