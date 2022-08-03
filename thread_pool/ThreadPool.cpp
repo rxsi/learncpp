@@ -134,14 +134,31 @@ void _doAddTask0(ThreadPool& ThreadPool)
     }
 }
 
+void _TestFun1()
+{
+    std::cout << "_TestFun1 = " << std::endl; 
+}
+
+void _doAddTask1(ThreadPool& ThreadPool)
+{
+    Task* task;
+    for (int i = 9; i >= 0; --i)
+    {
+        task = new Task(i, _TestFun1);
+        ThreadPool.AddTask(task);
+    }
+}
+
 int main()
 {
     ThreadPool threadPool;
     threadPool.Start();
 
     std::thread thread0 = std::thread(_doAddTask0, std::ref(threadPool)); // 这里传引用要加std::ref
+    std::thread thread1 = std::thread(_doAddTask1, std::ref(threadPool)); // 这里传引用要加std::ref
     thread0.join();
-    std::this_thread::sleep_for(std::chrono::seconds(60));
+    thread1.join();
+    std::this_thread::sleep_for(std::chrono::seconds(10));
     threadPool.Stop();
     // threads[1] = std::thread(_doAddTask1);
     // threads[2] = std::thread(_doAddTask2);
