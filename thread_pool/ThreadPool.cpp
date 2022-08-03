@@ -13,8 +13,8 @@
 struct Task
 {
     int priority; // 优先级，值越小代表优先级越高
-    void (*func)(); // 函数指针，会用std::function 和 std::bind 封装
-    Task(int _priority, void (*_func)()): priority(_priority), func(_func){}
+    std::function<void()> func;// 函数指针，会用std::function 和 std::bind 封装
+    Task(int _priority, std::function<void()> _func): priority(_priority), func(_func){}
 };
 
 class ThreadPool
@@ -48,6 +48,18 @@ private:
     std::vector<std::thread*> threads;
     std::priority_queue<Task*, std::vector<Task*>, _TaskCmp> tasks;
 };
+
+ThreadPool::ThreadPool(): isRunning(false){}
+ThreadPool::~ThreadPool()
+{
+    std::lock_guard<std::mutex> lock(_myMutex);
+    while (!tasks.empty())
+    {
+        Task* task = tasks.top();
+        tasks.pop();
+        delete task;
+    }
+}
 
 void ThreadPool::Start(int threadNum = _MIN_THREAD_NUM)
 {
@@ -107,17 +119,17 @@ void ThreadPool::ThreadLoop()
     }
 }
 
-void _TestFun0()
+void _TestFun0(int priority)
 {
-    std::cout << "_TestFun0" << std::endl; 
+    std::cout << "_TestFun0 = " << priority << std::endl; 
 }
 
 void _doAddTask0(ThreadPool& ThreadPool)
 {
     Task* task;
-    for (int i = 0; i < 10; ++i)
+    for (int i = 9; i >= 0; --i)
     {
-        task = new Task(i, _TestFun0);
+        task = new Task(i, std::bind(_TestFun0, i));
         ThreadPool.AddTask(task);
     }
 }
@@ -127,10 +139,9 @@ int main()
     ThreadPool threadPool;
     threadPool.Start();
 
-    std::vector<std::thread> threads(5);
-    threads[0] = std::thread(_doAddTask0, threadPool);
-    
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    std::thread thread0 = std::thread(_doAddTask0, std::ref(threadPool)); // 这里传引用要加std::ref
+    thread0.join();
+    std::this_thread::sleep_for(std::chrono::seconds(60));
     threadPool.Stop();
     // threads[1] = std::thread(_doAddTask1);
     // threads[2] = std::thread(_doAddTask2);
