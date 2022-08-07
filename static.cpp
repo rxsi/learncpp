@@ -100,10 +100,17 @@ b. const变量可以直接在类内定义
 
 #include <iostream>
 #include <memory>
+#include <string>
 
 class A
 {
 public:
+
+    static const int a = 1;
+    // static const float b = 2;
+    static constexpr int c = 3;
+    double d[a];
+    float e[c];
     A()
     {
         std::cout << "construct A" << std::endl;

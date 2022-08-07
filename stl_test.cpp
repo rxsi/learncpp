@@ -463,4 +463,8 @@ int main(){
     // for (auto& kv: myMap) std::cout << kv.first << " " << kv.second << std::endl;
     // auto iter = myMap.lower_bound(2);
     // std::cout << iter->first << std::endl;
+
+    vector<vector<int>> boolVec{5, vector<int>(4)};
+    boolVec[0][1] |= boolVec[2][1];
+
 } 
