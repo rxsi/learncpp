@@ -215,11 +215,27 @@ class D: public B, public C
     virtual void fun4(){}
 };
 
+class E
+{
+  struct E1{
+    int a;
+    int b;
+  };
+
+  enum E2{
+    TYPE1 = 1,
+    TYPE2 // 自动从上面的那个值递增，所以值为2，不占用对象的空间
+  };
+
+};
+
 int main()
 {
     D d;
     cout << sizeof(d) << endl; // 从gdb里面打印的话是8，直接运行结果是16，根据网上资料，应该是8才对，因为A没有其他成员变量，所以
     // B、C不会创建自己的虚函数表，而D是直接继承，也会直接使用A的虚函数表，因此只会有一个虚函数指针，所以sizeof是8
+    E e;
+    cout << sizeof(e) << endl;
 }
 /*
 当A没有其他成员变量时
