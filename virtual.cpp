@@ -221,24 +221,56 @@ C++对象内存布局
 /*
 不要重写具有默认值的虚函数,因为默认值是静态绑定的!!!!!!!!!!!
 */
-#include<iostream>
-#include<queue>
-#include<set>
-using namespace std;
+// #include<iostream>
+// #include<queue>
+// #include<set>
+// using namespace std;
 
-class Base{
-public:
-    virtual void fun(int a=1) = 0;
-};
+// class Base{
+// public:
+//     virtual void fun(int a=1) = 0;
+// };
 
-class Child: public Base{
+// class Child: public Base{
+// public:
+//     void fun(int a=2) override{
+//         cout << a << endl;
+//     }
+// };
+
+// int main(){
+//     Base *b = new Child();
+//     b -> fun(); // 输出的是1,即定义在Base中的默认值
+// }
+
+#include <iostream>
+#include <string>
+
+typedef void (*Fun)(void);
+
+class Base
+{
 public:
-    void fun(int a=2) override{
-        cout << a << endl;
+    virtual void f()
+    {
+        std::cout << "Base::f()" << std::endl;
     }
+
+    virtual void g()
+    {
+        std::cout << "Base::g()" << std::endl;
+    }
+
+    virtual void h()
+    {
+        std::cout << "Base::h()" << std::endl;
+    }
+private:
+    int a;
+    int b;
 };
 
-int main(){
-    Base *b = new Child();
-    b -> fun(); // 输出的是1,即定义在Base中的默认值
+int main()
+{
+    Base b;
 }
