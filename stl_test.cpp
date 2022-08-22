@@ -118,6 +118,30 @@ struct pair_hash
 };
 
 
+void fun(int a[5])
+{
+    cout << sizeof(a) << endl;
+}
+
+void fun1(int *a)
+{
+    cout << sizeof(a) << endl;
+}
+
+void fun2(int a[])
+{
+    cout << sizeof(a) << endl;
+}
+
+void fun3(int (*p)[5])
+{
+    cout << sizeof(*p) << endl;
+}
+
+void fun4(int *p){};
+// void fun4(int *const p){};
+// void fun4(const int *p){};
+
 
 int main(){
     vector<int> vec = {1};
@@ -467,4 +491,26 @@ int main(){
     vector<vector<int>> boolVec{5, vector<int>(4)};
     boolVec[0][1] |= boolVec[2][1];
 
+    int a[5] = {1, 2, 3, 4, 5};
+    int *p = nullptr;
+    // cout << a << endl;
+    // cout << &a << endl;
+    // cout << *a << endl;
+    // cout << p << endl;
+    // cout << &p << endl;
+    // cout << *p << endl;
+    // int (*pa)[5] = &a;
+    // fun(a);
+    // fun(*pa);
+    // fun3(&a);
+    // printf("array pointer address: %d\n", pa);
+    // printf("move one step (arr) : %d\n", pa+1);
+    // printf("array first element address: %d\n", a);
+    // printf("mvoe one step (element) : %d\n", a+1);
+
+    int *const b = new int(1);
+    int *c = b;
+    cout << &b << endl;
+    cout << &c << endl;
+    fun4(b);
 } 
