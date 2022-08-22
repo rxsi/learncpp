@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            std::cout << "malloc success : " << nbytes << std::endl;
+            std::cout << "malloc[" << i << "]" << " success : " << nbytes << std::endl;
         }
     }
     getchar(); // 让程序卡住
