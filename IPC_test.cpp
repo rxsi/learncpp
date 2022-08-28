@@ -618,53 +618,7 @@ mmap内存共享
 Posix共享内存
 */
 
-// #include <sys/mman.h>
-// #include <unistd.h>
-// #include <fcntl.h>
-// #include <semaphore.h>
-// #include <iostream>
-// #include <string.h>
-// #include <sys/stat.h>
-
-// // 编译：g++ IPC_test.cpp -o bin/IPC_test -lrt
-
-// #define PATH "/mmap_text" // 使用open+mmap是要求该文件一定存在，不计较包含了多少个/。
-// // 使用shm_open + mmap则一定只能包含一个/，因此"/tmp/mmap_text"是错误的，
-// int SIZE = 100;
-
-// int main()
-// {
-//     int fd = shm_open(PATH, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-//     int res = ftruncate(fd, SIZE); // 默认创建之后的size是0,因此一定要先调用ftruncate调整大小
-//     if (res == -1)
-//     {
-//         perror("ftruncate error");
-//         exit(1);
-//     }
-//     char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0); 
-//     pid_t pid = fork();
-//     if (pid == 0)
-//     {
-//         char s[SIZE] = "child string";
-//         memcpy(ptr, s, SIZE);
-//     }
-//     else if (pid > 0)
-//     {
-//         sleep(1); // 让子进程先写入
-//         char* ret = new char[SIZE];
-//         memcpy(ret, ptr, SIZE);
-//         std::cout << ret << std::endl;
-//         munmap(ptr, SIZE);
-//         close(fd);
-//         shm_unlink(PATH);
-//     }
-//     return 0;
-// }
-
-/*
-System V共享内存区
-*/
-#include <sys/shm.h>
+#include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <semaphore.h>
@@ -672,58 +626,104 @@ System V共享内存区
 #include <string.h>
 #include <sys/stat.h>
 
-// #define PATH "/tmp/system_v_shm" // 这里文件不要求只有一个/,但是要求有文件的权限,因此使用/tmp/system_v_shm需要使用sudo的方式运行
-#define PATH "/home/rxsi/system_v_shm" // 这里可以
+// 编译：g++ IPC_test.cpp -o bin/IPC_test -lrt
+
+#define PATH "/mmap_text" // 使用open+mmap是要求该文件一定存在，不计较包含了多少个/。
+// 使用shm_open + mmap则一定只能包含一个/，因此"/tmp/mmap_text"是错误的，
 int SIZE = 100;
 
 int main()
 {
-    key_t key = ftok(PATH, 255); // 对应的文件路径必须要存在,后面的255实际只会用上后8位
-    if (key == -1)
+    int fd = shm_open(PATH, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    int res = ftruncate(fd, SIZE); // 默认创建之后的size是0,因此一定要先调用ftruncate调整大小
+    if (res == -1)
     {
-        perror("ftok error");
+        perror("ftruncate error");
         exit(1);
     }
-    int shmid = shmget(key, SIZE, IPC_CREAT | SHM_R | SHM_W); // 可以使用IPC_PRIVATE由内核自行分配
-    if (shmid == -1)
-    {
-        perror("shmget error");
-        exit(1);
-    }
+    char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0); 
     pid_t pid = fork();
     if (pid == 0)
     {
-        struct shmid_ds buff;
-        char *ptr = (char*)shmat(shmid, nullptr, 0);
-        shmctl(shmid, IPC_STAT, &buff);
         char s[SIZE] = "child string";
         memcpy(ptr, s, SIZE);
-        int res = shmdt(ptr);
-        if (res == -1)
-        {
-            perror("shmdt error");
-            exit(1);
-        }
     }
     else if (pid > 0)
     {
         sleep(1); // 让子进程先写入
-        char *ptr = (char*)shmat(shmid, nullptr, 0);
         char* ret = new char[SIZE];
         memcpy(ret, ptr, SIZE);
         std::cout << ret << std::endl;
-        int res = shmdt(ptr);
-        if (res == -1)
-        {
-            perror("shmdt error");
-            exit(1);
-        }
-        res = shmctl(shmid, IPC_RMID, nullptr);
-        if (res == -1)
-        {
-            perror("shmctl error");
-            exit(1);
-        }
+        munmap(ptr, SIZE);
+        close(fd);
+        shm_unlink(PATH);
     }
     return 0;
 }
+
+/*
+System V共享内存区
+*/
+// #include <sys/shm.h>
+// #include <unistd.h>
+// #include <fcntl.h>
+// #include <semaphore.h>
+// #include <iostream>
+// #include <string.h>
+// #include <sys/stat.h>
+
+// // #define PATH "/tmp/system_v_shm" // 这里文件不要求只有一个/,但是要求有文件的权限,因此使用/tmp/system_v_shm需要使用sudo的方式运行
+// #define PATH "/home/rxsi/system_v_shm" // 这里可以
+// int SIZE = 100;
+
+// int main()
+// {
+//     key_t key = ftok(PATH, 255); // 对应的文件路径必须要存在,后面的255实际只会用上后8位
+//     if (key == -1)
+//     {
+//         perror("ftok error");
+//         exit(1);
+//     }
+//     int shmid = shmget(key, SIZE, IPC_CREAT | SHM_R | SHM_W); // 可以使用IPC_PRIVATE由内核自行分配
+//     if (shmid == -1)
+//     {
+//         perror("shmget error");
+//         exit(1);
+//     }
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+//         struct shmid_ds buff;
+//         char *ptr = (char*)shmat(shmid, nullptr, 0);
+//         shmctl(shmid, IPC_STAT, &buff);
+//         char s[SIZE] = "child string";
+//         memcpy(ptr, s, SIZE);
+//         int res = shmdt(ptr);
+//         if (res == -1)
+//         {
+//             perror("shmdt error");
+//             exit(1);
+//         }
+//     }
+//     else if (pid > 0)
+//     {
+//         sleep(1); // 让子进程先写入
+//         char *ptr = (char*)shmat(shmid, nullptr, 0);
+//         char* ret = new char[SIZE];
+//         memcpy(ret, ptr, SIZE);
+//         std::cout << ret << std::endl;
+//         int res = shmdt(ptr);
+//         if (res == -1)
+//         {
+//             perror("shmdt error");
+//             exit(1);
+//         }
+//         res = shmctl(shmid, IPC_RMID, nullptr);
+//         if (res == -1)
+//         {
+//             perror("shmctl error");
+//             exit(1);
+//         }
+//     }
+//     return 0;
+// }
