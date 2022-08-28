@@ -538,37 +538,37 @@ msgrcv函数的msgsz参数如果小于所要接收的消息的mtext长度,则如
 /*
 mmap内存共享
 */
-// #include <sys/mman.h>
-// #include <unistd.h>
-// #include <fcntl.h>
-// #include <semaphore.h>
-// #include <iostream>
-// #include <string.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <semaphore.h>
+#include <iostream>
+#include <string.h>
 
-// #define PATH "/home/tmp/mmap_text.txt"
-// #define SEM_PATH "/tmp"
-// #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
-// int SIZE = 100;
+#define PATH "/home/tmp/mmap_text.txt"
+#define SEM_PATH "/tmp"
+#define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+int SIZE = 100;
 
-// int main()
-// {
-//     char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0); // 当指定了MAP_ANONYMOUS属性时，代表不需要使用file，因此fd填入-1即可，用在有亲缘关系的进程间的通信
-//     pid_t pid = fork();
-//     if (pid == 0)
-//     {
-//         char s[SIZE] = "child string";
-//         memcpy(ptr, s, SIZE);
-//     }
-//     else if (pid > 0)
-//     {
-//         sleep(1); // 时子进程先写入
-//         char* ret = new char[SIZE];
-//         memcpy(ret, ptr, SIZE);
-//         std::cout << ret << std::endl;
-//         munmap(ptr, SIZE);
-//     }
-//     return 0;
-// }
+int main()
+{
+    char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0); // 当指定了MAP_ANONYMOUS属性时，代表不需要使用file，因此fd填入-1即可，用在有亲缘关系的进程间的通信
+    pid_t pid = fork();
+    if (pid == 0)
+    {
+        char s[SIZE] = "child string";
+        memcpy(ptr, s, SIZE);
+    }
+    else if (pid > 0)
+    {
+        sleep(100); // 时子进程先写入
+        char* ret = new char[SIZE];
+        memcpy(ret, ptr, SIZE);
+        std::cout << ret << std::endl;
+        munmap(ptr, SIZE);
+    }
+    return 0;
+}
 
 // #include <sys/mman.h>
 // #include <unistd.h>
@@ -578,7 +578,7 @@ mmap内存共享
 // #include <string.h>
 // #include <sys/stat.h>
 
-// #define PATH "/tmp/mmap_text" // 注意该文件要存在，如果文件不存在，则会报错：Segmentation fault
+// #define PATH "/tmp/mmap_text" // 注意该文件要存在，如果文件不存在，则会报错：Segmentation fault，这种方式一般用来实现零拷贝
 // #define SEM_PATH "/tmp"
 // #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
 // int SIZE = 100;
@@ -614,52 +614,52 @@ mmap内存共享
 // }
 
 
-/*
-Posix共享内存
-*/
+// /*
+// Posix共享内存
+// */
 
-#include <sys/mman.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <semaphore.h>
-#include <iostream>
-#include <string.h>
-#include <sys/stat.h>
+// #include <sys/mman.h>
+// #include <unistd.h>
+// #include <fcntl.h>
+// #include <semaphore.h>
+// #include <iostream>
+// #include <string.h>
+// #include <sys/stat.h>
 
-// 编译：g++ IPC_test.cpp -o bin/IPC_test -lrt
+// // 编译：g++ IPC_test.cpp -o bin/IPC_test -lrt
 
-#define PATH "/mmap_text" // 使用open+mmap是要求该文件一定存在，不计较包含了多少个/。
-// 使用shm_open + mmap则一定只能包含一个/，因此"/tmp/mmap_text"是错误的，
-int SIZE = 100;
+// #define PATH "/mmap_text" // 使用open+mmap是要求该文件一定存在，不计较包含了多少个/。
+// // 使用shm_open + mmap则一定只能包含一个/，因此"/tmp/mmap_text"是错误的，
+// int SIZE = 100;
 
-int main()
-{
-    int fd = shm_open(PATH, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-    int res = ftruncate(fd, SIZE); // 默认创建之后的size是0,因此一定要先调用ftruncate调整大小
-    if (res == -1)
-    {
-        perror("ftruncate error");
-        exit(1);
-    }
-    char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0); 
-    pid_t pid = fork();
-    if (pid == 0)
-    {
-        char s[SIZE] = "child string";
-        memcpy(ptr, s, SIZE);
-    }
-    else if (pid > 0)
-    {
-        sleep(1); // 让子进程先写入
-        char* ret = new char[SIZE];
-        memcpy(ret, ptr, SIZE);
-        std::cout << ret << std::endl;
-        munmap(ptr, SIZE);
-        close(fd);
-        shm_unlink(PATH);
-    }
-    return 0;
-}
+// int main()
+// {
+//     int fd = shm_open(PATH, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+//     int res = ftruncate(fd, SIZE); // 默认创建之后的size是0,因此一定要先调用ftruncate调整大小
+//     if (res == -1)
+//     {
+//         perror("ftruncate error");
+//         exit(1);
+//     }
+//     char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0); 
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+//         char s[SIZE] = "child string";
+//         memcpy(ptr, s, SIZE);
+//     }
+//     else if (pid > 0)
+//     {
+//         sleep(1); // 让子进程先写入
+//         char* ret = new char[SIZE];
+//         memcpy(ret, ptr, SIZE);
+//         std::cout << ret << std::endl;
+//         munmap(ptr, SIZE);
+//         close(fd);
+//         shm_unlink(PATH);
+//     }
+//     return 0;
+// }
 
 /*
 System V共享内存区
