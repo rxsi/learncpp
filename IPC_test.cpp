@@ -538,37 +538,37 @@ msgrcv函数的msgsz参数如果小于所要接收的消息的mtext长度,则如
 /*
 mmap内存共享
 */
-#include <sys/mman.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <semaphore.h>
-#include <iostream>
-#include <string.h>
+// #include <sys/mman.h>
+// #include <unistd.h>
+// #include <fcntl.h>
+// #include <semaphore.h>
+// #include <iostream>
+// #include <string.h>
 
-#define PATH "/home/tmp/mmap_text.txt"
-#define SEM_PATH "/tmp"
-#define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
-int SIZE = 100;
+// #define PATH "/home/tmp/mmap_text.txt"
+// #define SEM_PATH "/tmp"
+// #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)
+// int SIZE = 100;
 
-int main()
-{
-    char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0); // 当指定了MAP_ANONYMOUS属性时，代表不需要使用file，因此fd填入-1即可，用在有亲缘关系的进程间的通信
-    pid_t pid = fork();
-    if (pid == 0)
-    {
-        char s[SIZE] = "child string";
-        memcpy(ptr, s, SIZE);
-    }
-    else if (pid > 0)
-    {
-        sleep(100); // 时子进程先写入
-        char* ret = new char[SIZE];
-        memcpy(ret, ptr, SIZE);
-        std::cout << ret << std::endl;
-        munmap(ptr, SIZE);
-    }
-    return 0;
-}
+// int main()
+// {
+//     char* ptr = (char*)mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0); // 当指定了MAP_ANONYMOUS属性时，代表不需要使用file，因此fd填入-1即可，用在有亲缘关系的进程间的通信
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+//         char s[SIZE] = "child string";
+//         memcpy(ptr, s, SIZE);
+//     }
+//     else if (pid > 0)
+//     {
+//         sleep(100); // 时子进程先写入
+//         char* ret = new char[SIZE];
+//         memcpy(ret, ptr, SIZE);
+//         std::cout << ret << std::endl;
+//         munmap(ptr, SIZE);
+//     }
+//     return 0;
+// }
 
 // #include <sys/mman.h>
 // #include <unistd.h>
@@ -664,66 +664,71 @@ int main()
 /*
 System V共享内存区
 */
-// #include <sys/shm.h>
-// #include <unistd.h>
-// #include <fcntl.h>
-// #include <semaphore.h>
-// #include <iostream>
-// #include <string.h>
-// #include <sys/stat.h>
+#include <sys/shm.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <semaphore.h>
+#include <iostream>
+#include <string.h>
+#include <sys/stat.h>
 
-// // #define PATH "/tmp/system_v_shm" // 这里文件不要求只有一个/,但是要求有文件的权限,因此使用/tmp/system_v_shm需要使用sudo的方式运行
-// #define PATH "/home/rxsi/system_v_shm" // 这里可以
-// int SIZE = 100;
+// #define PATH "/tmp/system_v_shm" // 这里文件不要求只有一个/,但是要求有文件的权限,因此使用/tmp/system_v_shm需要使用sudo的方式运行
+#define PATH "/home/rxsi/system_v_shm" // 这里可以
+int SIZE = 100;
 
-// int main()
-// {
-//     key_t key = ftok(PATH, 255); // 对应的文件路径必须要存在,后面的255实际只会用上后8位
-//     if (key == -1)
-//     {
-//         perror("ftok error");
-//         exit(1);
-//     }
-//     int shmid = shmget(key, SIZE, IPC_CREAT | SHM_R | SHM_W); // 可以使用IPC_PRIVATE由内核自行分配
-//     if (shmid == -1)
-//     {
-//         perror("shmget error");
-//         exit(1);
-//     }
-//     pid_t pid = fork();
-//     if (pid == 0)
-//     {
-//         struct shmid_ds buff;
-//         char *ptr = (char*)shmat(shmid, nullptr, 0);
-//         shmctl(shmid, IPC_STAT, &buff);
-//         char s[SIZE] = "child string";
-//         memcpy(ptr, s, SIZE);
-//         int res = shmdt(ptr);
-//         if (res == -1)
-//         {
-//             perror("shmdt error");
-//             exit(1);
-//         }
-//     }
-//     else if (pid > 0)
-//     {
-//         sleep(1); // 让子进程先写入
-//         char *ptr = (char*)shmat(shmid, nullptr, 0);
-//         char* ret = new char[SIZE];
-//         memcpy(ret, ptr, SIZE);
-//         std::cout << ret << std::endl;
-//         int res = shmdt(ptr);
-//         if (res == -1)
-//         {
-//             perror("shmdt error");
-//             exit(1);
-//         }
-//         res = shmctl(shmid, IPC_RMID, nullptr);
-//         if (res == -1)
-//         {
-//             perror("shmctl error");
-//             exit(1);
-//         }
-//     }
-//     return 0;
-// }
+int main()
+{
+    // 对应的文件路径必须要存在,后面的255实际只会用上后8位
+    // 因为实际只是通过该文件名获得到对应inode信息，因此文件必要存在且具有访问权限
+    key_t key = ftok(PATH, 255);
+    if (key == -1)
+    {
+        perror("ftok error");
+        exit(1);
+    }
+    // 以下三种形式都是借助了tmpfs虚拟文件系统，但是创建的文件是不可见的
+    // int shmid = shmget(key, SIZE, IPC_CREAT | SHM_R | SHM_W); // 1.通过 ftok 创建的ID
+    // int shmid = shmget(IPC_PRIVATE, SIZE, IPC_CREAT | SHM_R | SHM_W); //2. 可以使用IPC_PRIVATE由内核自行分配
+    int shmid = shmget(1234, SIZE, IPC_CREAT | SHM_R | SHM_W); // 3. 自定义名
+    if (shmid == -1)
+    {
+        perror("shmget error");
+        exit(1);
+    }
+    pid_t pid = fork();
+    if (pid == 0)
+    {
+        struct shmid_ds buff;
+        char *ptr = (char*)shmat(shmid, nullptr, 0);
+        shmctl(shmid, IPC_STAT, &buff);
+        char s[SIZE] = "child string";
+        memcpy(ptr, s, SIZE);
+        int res = shmdt(ptr);
+        if (res == -1)
+        {
+            perror("shmdt error");
+            exit(1);
+        }
+    }
+    else if (pid > 0)
+    {
+        sleep(100); // 让子进程先写入
+        char *ptr = (char*)shmat(shmid, nullptr, 0);
+        char* ret = new char[SIZE];
+        memcpy(ret, ptr, SIZE);
+        std::cout << ret << std::endl;
+        int res = shmdt(ptr);
+        if (res == -1)
+        {
+            perror("shmdt error");
+            exit(1);
+        }
+        res = shmctl(shmid, IPC_RMID, nullptr);
+        if (res == -1)
+        {
+            perror("shmctl error");
+            exit(1);
+        }
+    }
+    return 0;
+}
