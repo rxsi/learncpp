@@ -681,11 +681,11 @@ int main()
     // 对应的文件路径必须要存在,后面的255实际只会用上后8位
     // 因为实际只是通过该文件名获得到对应inode信息，因此文件必要存在且具有访问权限
     // key_t key = ftok(PATH, 255);
-    if (key == -1)
-    {
-        perror("ftok error");
-        exit(1);
-    }
+    // if (key == -1)
+    // {
+    //     perror("ftok error");
+    //     exit(1);
+    // }
     // 以下三种形式都是借助了tmpfs虚拟文件系统，但是创建的文件是不可见的
     // int shmid = shmget(key, SIZE, IPC_CREAT | SHM_R | SHM_W); // 1.通过 ftok 创建的ID
     // int shmid = shmget(IPC_PRIVATE, SIZE, IPC_CREAT | SHM_R | SHM_W); //2. 可以使用IPC_PRIVATE由内核自行分配
