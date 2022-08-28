@@ -680,7 +680,7 @@ int main()
 {
     // 对应的文件路径必须要存在,后面的255实际只会用上后8位
     // 因为实际只是通过该文件名获得到对应inode信息，因此文件必要存在且具有访问权限
-    key_t key = ftok(PATH, 255);
+    // key_t key = ftok(PATH, 255);
     if (key == -1)
     {
         perror("ftok error");
