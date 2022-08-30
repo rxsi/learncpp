@@ -488,11 +488,11 @@ int main(){
     // auto iter = myMap.lower_bound(2);
     // std::cout << iter->first << std::endl;
 
-    vector<vector<int>> boolVec{5, vector<int>(4)};
-    boolVec[0][1] |= boolVec[2][1];
+    // vector<vector<int>> boolVec{5, vector<int>(4)};
+    // boolVec[0][1] |= boolVec[2][1];
 
-    int a[5] = {1, 2, 3, 4, 5};
-    int *p = nullptr;
+    // int a[5] = {1, 2, 3, 4, 5};
+    // int *p = nullptr;
     // cout << a << endl;
     // cout << &a << endl;
     // cout << *a << endl;
@@ -508,9 +508,33 @@ int main(){
     // printf("array first element address: %d\n", a);
     // printf("mvoe one step (element) : %d\n", a+1);
 
-    int *const b = new int(1);
-    int *c = b;
-    cout << &b << endl;
-    cout << &c << endl;
-    fun4(b);
+    // int *const b = new int(1);
+    // int *c = b;
+    // cout << &b << endl;
+    // cout << &c << endl;
+    // fun4(b);
+
+    std::vector<int> v{10, 20, 30, 5, 15};
+
+    std::make_heap(v.begin(),v.end()); // 构建大顶堆，v的头个元素是最大值，但是后面的其他值是无序的
+    std::cout << "initial max heap   : " << v.front() << '\n'; // 30
+
+    std::pop_heap(v.begin(),v.end()); // 将首元素与最后的元素进行swap，即[start, last-1)形成一个大顶堆，last-1是原数组的最大值
+    std::cout << "max heap after pop : " << v.front() << '\n'; // 20
+    std::cout << "old max in the heap : " << v.back() << '\n'; // 30
+    v.pop_back(); // 注意，当调用了pop_heap之后，last-1的位置已经不符合堆的排序了，因此要弹出
+
+    v.push_back(99);
+    std::push_heap(v.begin(),v.end()); // 要求将新值插入到last-1处，然后调用此方法进行堆的重构
+    std::cout << "max heap after push: " << v.front() << '\n';
+
+    std::sort_heap(v.begin(),v.end()); // 输出排序后的结果，内部实现就是一个while循环去调用pop_heap
+
+    std::cout << "final sorted range :";
+    for (unsigned i=0; i<v.size(); i++)
+    std::cout << ' ' << v[i];
+
+    std::cout << '\n';
+
+    return 0;
 } 

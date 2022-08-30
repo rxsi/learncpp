@@ -22,7 +22,7 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(0);
     // cin会忽略空格、回车、tab直接读取到一个字符，因此如果要获取上述几个字符则需要使用cin.get() == '\n' cin.get() == ' ' cin.get() == '\t'做判断
-    // int n; cin >> n;
+     // int n; cin >> n;
     int n = 5;
     int weight[] = {3, 2, 4, 4, 5};//货物的重量
     // for (int i = 0; i < n; ++ i) {
