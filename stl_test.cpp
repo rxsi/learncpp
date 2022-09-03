@@ -263,7 +263,14 @@ int main(){
     // // 关于pair的比较,默认会先比较元素1, 再比较元素2 // std::less<pair<int, int>>
     // 对于优先队列来说，默认是less函数，即比较的是A < B，按照一般的比较函数定义来说，这意味着A在B之前，也就是小的在前，但是最后形成的却是大顶堆
     // 这意味着top操作拿到的是大的那个值，和直觉相反。。。。。。
-    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, myCmp2> myPriorityQueue5;
+    // std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, myCmp2> myPriorityQueue5;
+    // 使用lambda函数自定义比较
+    auto lambdaCmp = [](pair<int, int>& m, pair<int, int>& n) {
+        if (m.first == n.first) return m.second > n.second;
+        return m.first > n.first;
+    };
+    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, decltype(lambdaCmp)> myPriorityQueue5(lambdaCmp);
+
     for (int i = 0; i < 5; i++)
     {
         // myPriorityQueue5.push(pair<int, int>(i, i+1));
@@ -465,6 +472,13 @@ int main(){
     // {
     //     std::cout << kv.first.first << " " << kv.first.second << " " << kv.second << std::endl;
     // }
+
+    unordered_map<string, int> myMap;
+    myMap["123"] = 1;
+
+    unordered_map<float, int> myMap2;
+    myMap2[1.22f] = 1123;
+    std::cout << myMap2[1.22f] << endl;
 
     // map<pair<int, int>, int> myMap2; // map可以直接把pair当作key,而且他可以接收的是自定义的排序算法,而不是hash算法
     // map<pair<int, int>, int, myCmp2> myMap3;
