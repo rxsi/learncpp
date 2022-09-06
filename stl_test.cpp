@@ -253,7 +253,6 @@ int main(){
 
     // priority_queue默认的排序规则是大顶堆,即less比较方法,即首元素是最大值
     // std::priority_queue<int> myPriorityQueue; // 初始化方式1:默认初始化
-
     // std::vector<int> myVector{1, 2, 3};
     // std::priority_queue<int> myPriorityQueue2(myVector.begin(), myVector.end()); // 初始化方式2:传入两个iterator, 因为默认是vector所以传入数组指针也是可以的
 
@@ -263,13 +262,14 @@ int main(){
     // // 关于pair的比较,默认会先比较元素1, 再比较元素2 // std::less<pair<int, int>>
     // 对于优先队列来说，默认是less函数，即比较的是A < B，按照一般的比较函数定义来说，这意味着A在B之前，也就是小的在前，但是最后形成的却是大顶堆
     // 这意味着top操作拿到的是大的那个值，和直觉相反。。。。。。
-    // std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, myCmp2> myPriorityQueue5;
+    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, myCmp2> myPriorityQueue4;
+    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, decltype(&myCmp)> myPriorityQueue5;
     // 使用lambda函数自定义比较
     auto lambdaCmp = [](pair<int, int>& m, pair<int, int>& n) {
         if (m.first == n.first) return m.second > n.second;
         return m.first > n.first;
     };
-    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, decltype(lambdaCmp)> myPriorityQueue5(lambdaCmp);
+    // std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, decltype(lambdaCmp)> myPriorityQueue5;
 
     for (int i = 0; i < 5; i++)
     {
@@ -549,6 +549,5 @@ int main(){
     std::cout << ' ' << v[i];
 
     std::cout << '\n';
-
     return 0;
 } 
