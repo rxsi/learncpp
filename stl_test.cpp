@@ -253,7 +253,6 @@ int main(){
 
     // priority_queue默认的排序规则是大顶堆,即less比较方法,即首元素是最大值
     // std::priority_queue<int> myPriorityQueue; // 初始化方式1:默认初始化
-
     // std::vector<int> myVector{1, 2, 3};
     // std::priority_queue<int> myPriorityQueue2(myVector.begin(), myVector.end()); // 初始化方式2:传入两个iterator, 因为默认是vector所以传入数组指针也是可以的
 
@@ -263,7 +262,15 @@ int main(){
     // // 关于pair的比较,默认会先比较元素1, 再比较元素2 // std::less<pair<int, int>>
     // 对于优先队列来说，默认是less函数，即比较的是A < B，按照一般的比较函数定义来说，这意味着A在B之前，也就是小的在前，但是最后形成的却是大顶堆
     // 这意味着top操作拿到的是大的那个值，和直觉相反。。。。。。
-    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, myCmp2> myPriorityQueue5;
+    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, myCmp2> myPriorityQueue4;
+    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, decltype(&myCmp)> myPriorityQueue5;
+    // 使用lambda函数自定义比较
+    auto lambdaCmp = [](pair<int, int>& m, pair<int, int>& n) {
+        if (m.first == n.first) return m.second > n.second;
+        return m.first > n.first;
+    };
+    // std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, decltype(lambdaCmp)> myPriorityQueue5;
+
     for (int i = 0; i < 5; i++)
     {
         // myPriorityQueue5.push(pair<int, int>(i, i+1));
@@ -466,6 +473,13 @@ int main(){
     //     std::cout << kv.first.first << " " << kv.first.second << " " << kv.second << std::endl;
     // }
 
+    unordered_map<string, int> myMap;
+    myMap["123"] = 1;
+
+    unordered_map<float, int> myMap2;
+    myMap2[1.22f] = 1123;
+    std::cout << myMap2[1.22f] << endl;
+
     // map<pair<int, int>, int> myMap2; // map可以直接把pair当作key,而且他可以接收的是自定义的排序算法,而不是hash算法
     // map<pair<int, int>, int, myCmp2> myMap3;
     // myMap2[{1, 1}] = 1;
@@ -488,11 +502,11 @@ int main(){
     // auto iter = myMap.lower_bound(2);
     // std::cout << iter->first << std::endl;
 
-    vector<vector<int>> boolVec{5, vector<int>(4)};
-    boolVec[0][1] |= boolVec[2][1];
+    // vector<vector<int>> boolVec{5, vector<int>(4)};
+    // boolVec[0][1] |= boolVec[2][1];
 
-    int a[5] = {1, 2, 3, 4, 5};
-    int *p = nullptr;
+    // int a[5] = {1, 2, 3, 4, 5};
+    // int *p = nullptr;
     // cout << a << endl;
     // cout << &a << endl;
     // cout << *a << endl;
@@ -508,9 +522,32 @@ int main(){
     // printf("array first element address: %d\n", a);
     // printf("mvoe one step (element) : %d\n", a+1);
 
-    int *const b = new int(1);
-    int *c = b;
-    cout << &b << endl;
-    cout << &c << endl;
-    fun4(b);
+    // int *const b = new int(1);
+    // int *c = b;
+    // cout << &b << endl;
+    // cout << &c << endl;
+    // fun4(b);
+
+    std::vector<int> v{10, 20, 30, 5, 15};
+
+    std::make_heap(v.begin(),v.end()); // 构建大顶堆，v的头个元素是最大值，但是后面的其他值是无序的
+    std::cout << "initial max heap   : " << v.front() << '\n'; // 30
+
+    std::pop_heap(v.begin(),v.end()); // 将首元素与最后的元素进行swap，即[start, last-1)形成一个大顶堆，last-1是原数组的最大值
+    std::cout << "max heap after pop : " << v.front() << '\n'; // 20
+    std::cout << "old max in the heap : " << v.back() << '\n'; // 30
+    v.pop_back(); // 注意，当调用了pop_heap之后，last-1的位置已经不符合堆的排序了，因此要弹出
+
+    v.push_back(99);
+    std::push_heap(v.begin(),v.end()); // 要求将新值插入到last-1处，然后调用此方法进行堆的重构
+    std::cout << "max heap after push: " << v.front() << '\n';
+
+    std::sort_heap(v.begin(),v.end()); // 输出排序后的结果，内部实现就是一个while循环去调用pop_heap
+
+    std::cout << "final sorted range :";
+    for (unsigned i=0; i<v.size(); i++)
+    std::cout << ' ' << v[i];
+
+    std::cout << '\n';
+    return 0;
 } 
