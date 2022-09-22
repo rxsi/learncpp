@@ -98,7 +98,7 @@ int main(){
     return 0;
 }
 
-// 模拟服务端: nc -v -l  3000
+// 模拟服务端: nc -v -l -p 3000
 
 // 设置连接时顺便接收第一组数据
 // 使用setsockopt 设置参数 TCP_DEFER_ACCEPT

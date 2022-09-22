@@ -39,7 +39,8 @@ int main()
     */
     if (mysql_real_connect(&mysql, HOST, USER, PASSWRD, DATABASE, PORT, NULL, 0))
     {
-        std::cout << "connect success " << endl;
+        std::cout << "connect success " << std::endl;
+        // 测试1：select语句
         /*
         int
         mysql_query(MYSQL *mysql,
@@ -82,12 +83,11 @@ int main()
             mysql_fetch_field(MYSQL_RES *result)
             返回结果集中定义的列
             */
-            std::cout << "field name: ";
             while (fd = mysql_fetch_field(res))
             {
                 std::cout << fd->name << "\t";
             }
-            std::cout << endl;
+            std::cout << std::endl;
             MYSQL_ROW sql_row;
             /*
             MYSQL_ROW
@@ -111,6 +111,19 @@ int main()
         释放结果集的内存
         */
         if (res != NULL) mysql_free_result(res);
+        
+        // 测试2：insert语句
+        char statement[255];
+        sprintf(statement, "insert into test_table(id, name, age, sex, height) values('%d', '%s', '%d', '%d', '%d')", 5, "456", 23, 2, 14);
+        if (mysql_query(&mysql, statement))
+        {
+            std::cout << "insert err" << std::endl;
+            return 0;
+        }
+        std::cout << "insert success, all isnert num: " << mysql_affected_rows(&mysql) << std::endl;
+
+        // 测试3：update语句
+        
     }
     else
     {

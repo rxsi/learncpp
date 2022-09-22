@@ -26,15 +26,24 @@ int main(){
         return -1;
     }
 
-    while (true){
-        sockaddr_in clientaddr;
-        socklen_t clientaddrlen = sizeof(clientaddr);
-        int clientfd = accept(listenfd, (sockaddr*)&clientaddr, &clientaddrlen);
-        if (clientfd != -1){ // 这里不调用recv进行数据接收,探究tcp滑动窗口,接收缓冲区,发送缓冲区的一些问题
-            std::cout << "accept a client connection. " << std::endl;
-        }
-    }
+    // while (true){
+    //     sockaddr_in clientaddr;
+    //     socklen_t clientaddrlen = sizeof(clientaddr);
+    //     int clientfd = accept(listenfd, (sockaddr*)&clientaddr, &clientaddrlen);
+    //     if (clientfd != -1){ // 这里不调用recv进行数据接收,探究tcp滑动窗口,接收缓冲区,发送缓冲区的一些问题
+    //         std::cout << "accept a client connection. " << std::endl;
+    //     }
+    // }
 
+    sockaddr_in clientaddr;
+    socklen_t clientaddrlen = sizeof(clientaddr);
+    int clientfd = accept(listenfd, (sockaddr*)&clientaddr, &clientaddrlen);
+    if (clientfd != -1){ // 这里不调用recv进行数据接收,探究tcp滑动窗口,接收缓冲区,发送缓冲区的一些问题
+        std::cout << "accept a client connection. " << std::endl;
+    }
+    close(clientfd);
+    close(listenfd);
+    return -1;
 }
 /*
 
