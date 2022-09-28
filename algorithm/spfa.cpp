@@ -11,12 +11,10 @@ using namespace std;
 因此可以使用队列（先进先出）记录上次变化的边，这样就可以提升速度了。
 */
 
-vector<int> result;
 
-bool spfa(int point, vector<vector<int>>& dist)
+bool spfa(int point, vector<vector<int>>& dist, vector<int>& result)
 {
     int n = dist.size();
-    result = vector<int>(n, M);
     // for (int i = 0; i < dist.size(); ++i) result[i] = dist[point][i]; // 因为使用了队列进行记录，因此这里不需要这样做，只需要标记point即可
     result[point] = 0;
     queue<int> Que;
@@ -29,7 +27,7 @@ bool spfa(int point, vector<vector<int>>& dist)
         Que.pop();
         for (int i = 0; i < n; ++i)
         {
-            if (result[p] + dist[p][i] < result[i])
+            if (result[p] + dist[p][i] < result[i]) // result[p]代表的是point->p的最短距离; dist[p][i]代表的是p->i的当前距离; result[i]代表的是p->i的最短距离
             {
                 result[i] = result[p] + dist[p][i];
                 countTimes[i]++;
@@ -49,7 +47,8 @@ int main()
         {M, M, 0, 1},
         {M, M, M, 0}
     };
-    if (spfa(0, dist))
+    vector<int> result(dist.size(), M);
+    if (spfa(0, dist, result))
     {
         for (auto& num: result) cout << num << " ";    
     }

@@ -22,10 +22,9 @@ using namespace std;
 #define M INT_MAX/2
 
 
-vector<int> dijkstraFinder(int point, vector<vector<int>>& dist)
+vector<int> dijkstraFinder(int point, vector<vector<int>>& dist, vector<int>& result)
 {
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> Priority_Queue;
-    vector<int> result(dist.size(), M);
     vector<bool> visited(dist.size(), false);
     Priority_Queue.emplace(0, point);
     while (!Priority_Queue.empty())
@@ -44,7 +43,7 @@ vector<int> dijkstraFinder(int point, vector<vector<int>>& dist)
             }
         }
     }
-    return result;
+    return;
 }
 
 int main()
@@ -55,7 +54,8 @@ int main()
         {M, M, 0, 1},
         {M, M, M, 0}
     };
-    vector<int> ret = dijkstraFinder(0, dist);
-    for (auto& num: ret) cout << num << " ";
+    vector<int> result(dist.size(), M); // 先初始化到所有点的距离都为M
+    dijkstraFinder(0, dist, result);
+    for (auto& num: result) cout << num << " ";
     cout << endl;
 } 

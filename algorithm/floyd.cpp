@@ -10,11 +10,10 @@ using namespace std;
 但是，他不可以计算有负权环的图，因为每次都走负权环，则每次的路径都在减少，最终是无穷小
 */
 
-vector<vector<int>> floydFinder(vector<vector<int>>& dist)
+void floydFinder(vector<vector<int>>& dist, vector<vector<int>>& path)
 {
     int n = dist.size();
     vector<vector<int>> dp(dist);
-    vector<vector<int>> path(n, vector<int>(n, -1));
     for (int k = 0; k < n; ++k)
     {
         for (int i = 0; i < n; ++i)
@@ -29,7 +28,7 @@ vector<vector<int>> floydFinder(vector<vector<int>>& dist)
             }   
         }
     }
-    return path;
+    return;
 }
 
 void findPath(vector<vector<int>>& path, int start, int end, vector<int>& route)
@@ -65,7 +64,9 @@ int main()
         {M, M, 0, 1},
         {M, M, M, 0}
     };
-    vector<vector<int>> path = floydFinder(dist);
+    int n = dist.size();
+    vector<vector<int>> path(n, vector<int>(n, -1));
+    floydFinder(dist, path);
     vector<int> route;
     findPath(path, 0, 3, route);
     for (auto& i: route)
