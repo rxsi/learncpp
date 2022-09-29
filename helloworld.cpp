@@ -224,7 +224,7 @@
 
 #include <random>
 #include <iostream>
-#include <unistd.h>
+#include <string.h>
 
 int main()
 {
