@@ -224,14 +224,17 @@
 
 #include <random>
 #include <iostream>
+#include <unistd.h>
 
 int main()
 {
     while (true)
     {
-        int j = rand() % 10;
-        int b = 1 / j;
-        std::cout << b << std::endl;
+        // int j = rand() % 10;
+        // int b = 1 / j;
+        // std::cout << b << std::endl;
+        char* p = (char*)malloc(10000000);
+        memset(p, '\0', 10000000);
     }
     return 0;
 }
