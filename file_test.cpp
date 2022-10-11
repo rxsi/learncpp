@@ -10,6 +10,7 @@
 #include <sys/stat.h> // open, read
 #include <fcntl.h> // open, read
 #include <iostream> // cout, cin
+#include <unistd.h> // read, close
  
 void readFunc(int fd)
 {
@@ -23,5 +24,7 @@ int main()
     int fd = open("home/rxsi/hello_world.txt", O_RDONLY);
     std::thread t1(readFunc, std::ref(fd));
     std::thread t2(readFunc, std::ref(fd));
-
+    t1.join();
+    t2.join();
+    close(fd);
 }
