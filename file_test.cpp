@@ -9,6 +9,7 @@
 #include <fcntl.h> // open, read
 #include <iostream> // cout, cin
 #include <unistd.h> // read, close
+#include <fstream>
 
 /*
 写入内容
@@ -31,6 +32,14 @@
 //     close(fd);
 // }
 
+
+size_t getFileSize(const char* filename)
+{
+    struct stat st;
+    stat(filename, &st);
+    return st.st_size;
+}
+
  /*
 1. 多线程读
 */
@@ -42,6 +51,7 @@ void readFunc(int fd)
     {
         ssize_t len = read(fd, buf, 10);
         std::cout << "threadID: " << std::this_thread::get_id() << ", data_len: " << len << ", data: " << buf << std::endl;
+        std::cout << "tell: " << tell(fd) << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
