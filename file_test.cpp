@@ -16,7 +16,7 @@
 */
 int main()
 {
-    FILE* fd = fopen("/home/rxsi/hello_world.txt", "rw");
+    FILE* fd = fopen("/home/rxsi/hello_world.txt", "w");
     char a[] = "aaaaaaaaa";
     char b[] = "bbbbbbbbb";
     char c[] = "ccccccccc";
