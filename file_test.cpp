@@ -25,7 +25,7 @@ void readFunc(int fd)
 
 int main()
 {
-    int fd = open("home/rxsi/hello_world.txt", O_RDONLY);
+    int fd = open("/home/rxsi/hello_world.txt", O_RDONLY);
     char buf[10] = {0};
     ssize_t len = read(fd, buf, 10);
     std::cout << "threadID: " << std::this_thread::get_id() << ", data_len: " << len << ", data: " << buf << std::endl;
