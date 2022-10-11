@@ -15,8 +15,11 @@
 void readFunc(int fd)
 {
     char buf[10] = {0};
-    ssize_t len = read(fd, buf, 10);
-    std::cout << "threadID: " << std::this_thread::get_id() << ", data: " << buf << std::endl;
+    while (true)
+    {
+        ssize_t len = read(fd, buf, 10);
+        std::cout << "threadID: " << std::this_thread::get_id() << ", data_len: " << len << ", data: " << buf << std::endl;
+    }
 }
 
 int main()
