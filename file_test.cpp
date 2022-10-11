@@ -51,7 +51,7 @@ void readFunc(int fd)
     {
         ssize_t len = read(fd, buf, 10);
         std::cout << "threadID: " << std::this_thread::get_id() << ", data_len: " << len << ", data: " << buf << std::endl;
-        std::cout << "tell: " << ftell(fd) << std::endl;
+        std::cout << "tell: " << tellg(fd) << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
