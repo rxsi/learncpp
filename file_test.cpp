@@ -17,18 +17,18 @@
 int main()
 {
     FILE* fd = fopen("/home/rxsi/hello_world.txt", "rw");
-    char a[10] = "aaaaaaaaa";
-    char b[10] = "bbbbbbbbb";
-    char c[10] = "ccccccccc";
-    char d[10] = "ddddddddd";
-    char e[10] = "eeeeeeeee";
-    char f[10] = "fffffffff";
-    fwrite(a, 10, 1, fd);
-    fwrite(b, 10, 1, fd);
-    fwrite(c, 10, 1, fd);
-    fwrite(d, 10, 1, fd);
-    fwrite(e, 10, 1, fd);
-    fwrite(f, 10, 1, fd);
+    char a[] = "aaaaaaaaa";
+    char b[] = "bbbbbbbbb";
+    char c[] = "ccccccccc";
+    char d[] = "ddddddddd";
+    char e[] = "eeeeeeeee";
+    char f[] = "fffffffff";
+    fwrite(a, sizeof(a), 1, fd);
+    fwrite(b, sizeof(b), 1, fd);
+    fwrite(c, sizeof(c), 1, fd);
+    fwrite(d, sizeof(d), 1, fd);
+    fwrite(e, sizeof(e), 1, fd);
+    fwrite(f, sizeof(f), 1, fd);
     fclose(fd);
 }
 
