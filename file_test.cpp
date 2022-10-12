@@ -212,7 +212,7 @@ int main()
     // char d[] = "ddddddddd";
     // char e[] = "eeeeeeeee";
     // char f[] = "fffffffff";
-    fwrite(a, 4, 4, fd);
+    fwrite(a, sizeof(a), 1, fd);
     // fwrite(b, 1, sizeof(a), fd);
     // fwrite(c, 1, sizeof(a), fd);
     // fwrite(d, 1, sizeof(a), fd);
