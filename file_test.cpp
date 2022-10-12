@@ -184,18 +184,48 @@ FILE *stream：FILE结构体指针
 头文件：#include <stdio.h>
 函数原型：size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
 参数：
-const void *ptr：要被写入的元素数组的指针
+const void *ptr：要被写入的元素数组的指针，貌似只能写入char数组
 size_t size：要被写入的每个元素的大小，以字节位单位
 size_t nmemb：写入元素的个数
 FILE *stream：FILE结构体指针
 
 示例：
 char a[] = "abcde";
-fwrite(a, 1, 6, fd); // 一个字节，总共6个元素
+fwrite(a, 1, sizeof(a), fd); // 一个字节，总共6个元素
 
 8. fread: 从字节流读取指定大小的数据
+头文件：#include <stdio.h>
+函数原型：size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream)
+参数：
+void *ptr：用户态的缓冲区
+size_t size：每个元素的大小，单位字节
+size_t nmemb：元素个数
+FILE *stream：FILE结构体指针
 
+返回成功读取到的元素总数，如果该值与nmemb不相同，那么可能是发送了错误，或者到达了文件末尾
 
+9. fseek：设置偏移量
+头文件：#include <stdio.h>
+函数原型：int fseek(FILE *stream, long int offset, int whence)
+参数：
+FILE *stream：FILE结构体指针
+long int offset：偏移量
+int whence：模式
+SEEK_SET：将文件偏移量修改为offset值
+SEEK_CUR：将当前文件偏移量加上offset值，offset可正可负
+SEEK_END：将文件偏移量设置为文件长度加上offset值，offset可正可负
+
+10. rewind：把偏移量设置到文件头
+头文件：#include <stdio.h>
+函数原型：void rewind(FILE *stream)
+参数：
+FILE *stream：FILE结构体指针
+
+11. ftell：返回当前的偏移量
+头文件：#include <stdio.h>
+函数原型：long int ftell(FILE *stream)
+参数：
+FILE *stream：FILE结构体指针
 */
 
 /*
@@ -204,20 +234,18 @@ fwrite(a, 1, 6, fd); // 一个字节，总共6个元素
 int main()
 {
     FILE* fd = fopen("/home/rxsi/hello_world.txt", "w");
-    // char a[] = "aaaaaaaaa";
-    // int a(1234);
-    int a[] = {1, 2, 3, 4};
-    // char b[] = "bbbbbbbbb";
-    // char c[] = "ccccccccc";
-    // char d[] = "ddddddddd";
-    // char e[] = "eeeeeeeee";
-    // char f[] = "fffffffff";
-    fwrite(a, sizeof(a), 1, fd);
-    // fwrite(b, 1, sizeof(a), fd);
-    // fwrite(c, 1, sizeof(a), fd);
-    // fwrite(d, 1, sizeof(a), fd);
-    // fwrite(e, 1, sizeof(a), fd);
-    // fwrite(f, 1, sizeof(a), fd);
+    char a[] = "aaaaaaaaa";
+    char b[] = "bbbbbbbbb";
+    char c[] = "ccccccccc";
+    char d[] = "ddddddddd";
+    char e[] = "eeeeeeeee";
+    char f[] = "fffffffff";
+    fwrite(a, 1, sizeof(a), fd);
+    fwrite(b, 1, sizeof(a), fd);
+    fwrite(c, 1, sizeof(a), fd);
+    fwrite(d, 1, sizeof(a), fd);
+    fwrite(e, 1, sizeof(a), fd);
+    fwrite(f, 1, sizeof(a), fd);
     // fwrite(a, sizeof(a), 1, fd);
     // fwrite(b, sizeof(b), 1, fd);
     // fwrite(c, sizeof(c), 1, fd);
