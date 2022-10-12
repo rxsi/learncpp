@@ -205,13 +205,14 @@ int main()
 {
     FILE* fd = fopen("/home/rxsi/hello_world.txt", "w");
     // char a[] = "aaaaaaaaa";
-    int a(1234);
+    // int a(1234);
+    int a[] = {1, 2, 3, 4};
     // char b[] = "bbbbbbbbb";
     // char c[] = "ccccccccc";
     // char d[] = "ddddddddd";
     // char e[] = "eeeeeeeee";
     // char f[] = "fffffffff";
-    fwrite(&a, 4, 1, fd);
+    fwrite(a, 4, 4, fd);
     // fwrite(b, 1, sizeof(a), fd);
     // fwrite(c, 1, sizeof(a), fd);
     // fwrite(d, 1, sizeof(a), fd);
