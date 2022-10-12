@@ -167,63 +167,63 @@ mode参数指定了文件权限和将被创建的文件类型(再次情况下是
 
 */
 
-// #include <stdio.h>
-// #include <unistd.h>
-// #include <string.h>
-// #include <errno.h>
-// #include <sys/types.h>
-// #include <sys/stat.h>
-// #include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-// #define PATH "/tmp/my_fifo"
+#define PATH "/tmp/my_fifo"
 
-// int main()
-// {
-//     int ret = mkfifo(PATH, 0777); // 如果文件已经存在,那么会返回-1
-//     if (ret == -1)
-//     {
-//         perror("pipe error\n");
-//         return 1;
-//     }
+int main()
+{
+    int ret = mkfifo(PATH, 0777); // 如果文件已经存在,那么会返回-1
+    // if (ret == -1)
+    // {
+    //     perror("pipe error\n");
+    //     return 1;
+    // }
 
-//     pid_t id = fork();
-//     if (id == 0)
-//     {
-//         int fd = open(PATH, O_WRONLY);
-//         int i = 0;
-//         const char* child = "I am child by fifo";
-//         while (i < 5)
-//         {
-//             write(fd, child, strlen(child)+1);
-//             sleep(1);
-//             i++;
-//         }
-//         close(fd);
-//     }
-//     else if (id > 0)
-//     {
-//         int fd = open(PATH, O_RDONLY);
-//         char msg[100];
-//         int status = 0;
-//         int j = 0;
-//         while (j < 5)
-//         {
-//             memset(msg, '\0', sizeof(msg));
-//             ssize_t s = read(fd, msg, sizeof(msg));
-//             printf("%s %d\n", msg, j);
-//             j++;
-//         }
-//         close(fd); // 关闭管道文件
-//         unlink(PATH); // 删除管道文件,底层使用了引用计数,即使这个语句放在open之后就调用,依然不会影响已经打开的FIFO管道.
-//         // 如果放在open之前,则open函数会被阻塞
-//     }
-//     else
-//     {
-//         perror("fork error\n");
-//         return 2;
-//     }
-//     return 0;
-// }
+    // pid_t id = fork();
+    // if (id == 0)
+    // {
+    //     int fd = open(PATH, O_WRONLY);
+    //     int i = 0;
+    //     const char* child = "I am child by fifo";
+    //     while (i < 5)
+    //     {
+    //         write(fd, child, strlen(child)+1);
+    //         sleep(1);
+    //         i++;
+    //     }
+    //     close(fd);
+    // }
+    // else if (id > 0)
+    // {
+    //     int fd = open(PATH, O_RDONLY);
+    //     char msg[100];
+    //     int status = 0;
+    //     int j = 0;
+    //     while (j < 5)
+    //     {
+    //         memset(msg, '\0', sizeof(msg));
+    //         ssize_t s = read(fd, msg, sizeof(msg));
+    //         printf("%s %d\n", msg, j);
+    //         j++;
+    //     }
+    //     close(fd); // 关闭管道文件
+    //     unlink(PATH); // 删除管道文件,底层使用了引用计数,即使这个语句放在open之后就调用,依然不会影响已经打开的FIFO管道.
+    //     // 如果放在open之前,则open函数会被阻塞
+    // }
+    // else
+    // {
+    //     perror("fork error\n");
+    //     return 2;
+    // }
+    return 0;
+}
 
 /*
 信号
@@ -664,71 +664,71 @@ mmap内存共享
 /*
 System V共享内存区
 */
-#include <sys/shm.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <semaphore.h>
-#include <iostream>
-#include <string.h>
-#include <sys/stat.h>
+// #include <sys/shm.h>
+// #include <unistd.h>
+// #include <fcntl.h>
+// #include <semaphore.h>
+// #include <iostream>
+// #include <string.h>
+// #include <sys/stat.h>
 
-// #define PATH "/tmp/system_v_shm" // 这里文件不要求只有一个/,但是要求有文件的权限,因此使用/tmp/system_v_shm需要使用sudo的方式运行
-#define PATH "/home/rxsi/system_v_shm" // 这里可以
-int SIZE = 100;
+// // #define PATH "/tmp/system_v_shm" // 这里文件不要求只有一个/,但是要求有文件的权限,因此使用/tmp/system_v_shm需要使用sudo的方式运行
+// #define PATH "/home/rxsi/system_v_shm" // 这里可以
+// int SIZE = 100;
 
-int main()
-{
-    // 对应的文件路径必须要存在,后面的255实际只会用上后8位
-    // 因为实际只是通过该文件名获得到对应inode信息，因此文件必要存在且具有访问权限
-    // key_t key = ftok(PATH, 255);
-    // if (key == -1)
-    // {
-    //     perror("ftok error");
-    //     exit(1);
-    // }
-    // 以下三种形式都是借助了tmpfs虚拟文件系统，但是创建的文件是不可见的
-    // int shmid = shmget(key, SIZE, IPC_CREAT | SHM_R | SHM_W); // 1.通过 ftok 创建的ID
-    // int shmid = shmget(IPC_PRIVATE, SIZE, IPC_CREAT | SHM_R | SHM_W); //2. 可以使用IPC_PRIVATE由内核自行分配
-    int shmid = shmget(1234, SIZE, IPC_CREAT | SHM_R | SHM_W); // 3. 自定义名
-    if (shmid == -1)
-    {
-        perror("shmget error");
-        exit(1);
-    }
-    pid_t pid = fork();
-    if (pid == 0)
-    {
-        struct shmid_ds buff;
-        char *ptr = (char*)shmat(shmid, nullptr, 0);
-        shmctl(shmid, IPC_STAT, &buff);
-        char s[SIZE] = "child string";
-        memcpy(ptr, s, SIZE);
-        int res = shmdt(ptr);
-        if (res == -1)
-        {
-            perror("shmdt error");
-            exit(1);
-        }
-    }
-    else if (pid > 0)
-    {
-        sleep(100); // 让子进程先写入
-        char *ptr = (char*)shmat(shmid, nullptr, 0);
-        char* ret = new char[SIZE];
-        memcpy(ret, ptr, SIZE);
-        std::cout << ret << std::endl;
-        int res = shmdt(ptr);
-        if (res == -1)
-        {
-            perror("shmdt error");
-            exit(1);
-        }
-        res = shmctl(shmid, IPC_RMID, nullptr);
-        if (res == -1)
-        {
-            perror("shmctl error");
-            exit(1);
-        }
-    }
-    return 0;
-}
+// int main()
+// {
+//     // 对应的文件路径必须要存在,后面的255实际只会用上后8位
+//     // 因为实际只是通过该文件名获得到对应inode信息，因此文件必要存在且具有访问权限
+//     // key_t key = ftok(PATH, 255);
+//     // if (key == -1)
+//     // {
+//     //     perror("ftok error");
+//     //     exit(1);
+//     // }
+//     // 以下三种形式都是借助了tmpfs虚拟文件系统，但是创建的文件是不可见的
+//     // int shmid = shmget(key, SIZE, IPC_CREAT | SHM_R | SHM_W); // 1.通过 ftok 创建的ID
+//     // int shmid = shmget(IPC_PRIVATE, SIZE, IPC_CREAT | SHM_R | SHM_W); //2. 可以使用IPC_PRIVATE由内核自行分配
+//     int shmid = shmget(1234, SIZE, IPC_CREAT | SHM_R | SHM_W); // 3. 自定义名
+//     if (shmid == -1)
+//     {
+//         perror("shmget error");
+//         exit(1);
+//     }
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+//         struct shmid_ds buff;
+//         char *ptr = (char*)shmat(shmid, nullptr, 0);
+//         shmctl(shmid, IPC_STAT, &buff);
+//         char s[SIZE] = "child string";
+//         memcpy(ptr, s, SIZE);
+//         int res = shmdt(ptr);
+//         if (res == -1)
+//         {
+//             perror("shmdt error");
+//             exit(1);
+//         }
+//     }
+//     else if (pid > 0)
+//     {
+//         sleep(100); // 让子进程先写入
+//         char *ptr = (char*)shmat(shmid, nullptr, 0);
+//         char* ret = new char[SIZE];
+//         memcpy(ret, ptr, SIZE);
+//         std::cout << ret << std::endl;
+//         int res = shmdt(ptr);
+//         if (res == -1)
+//         {
+//             perror("shmdt error");
+//             exit(1);
+//         }
+//         res = shmctl(shmid, IPC_RMID, nullptr);
+//         if (res == -1)
+//         {
+//             perror("shmctl error");
+//             exit(1);
+//         }
+//     }
+//     return 0;
+// }
