@@ -186,8 +186,15 @@ FILE *stream：FILE结构体指针
 参数：
 const void *ptr：要被写入的元素数组的指针
 size_t size：要被写入的每个元素的大小，以字节位单位
+size_t nmemb：写入元素的个数
+FILE *stream：FILE结构体指针
 
-7. fread:
+示例：
+char a[] = "abcde";
+fwrite(a, 1, 6, fd); // 一个字节，总共6个元素
+
+8. fread: 从字节流读取指定大小的数据
+
 
 */
 
@@ -197,18 +204,19 @@ size_t size：要被写入的每个元素的大小，以字节位单位
 int main()
 {
     FILE* fd = fopen("/home/rxsi/hello_world.txt", "w");
-    char a[] = "aaaaaaaaa";
-    char b[] = "bbbbbbbbb";
-    char c[] = "ccccccccc";
-    char d[] = "ddddddddd";
-    char e[] = "eeeeeeeee";
-    char f[] = "fffffffff";
-    fwrite(a, 1, sizeof(a), fd);
-    fwrite(b, 1, sizeof(a), fd);
-    fwrite(c, 1, sizeof(a), fd);
-    fwrite(d, 1, sizeof(a), fd);
-    fwrite(e, 1, sizeof(a), fd);
-    fwrite(f, 1, sizeof(a), fd);
+    // char a[] = "aaaaaaaaa";
+    int a(1234);
+    // char b[] = "bbbbbbbbb";
+    // char c[] = "ccccccccc";
+    // char d[] = "ddddddddd";
+    // char e[] = "eeeeeeeee";
+    // char f[] = "fffffffff";
+    fwrite(&a, 4, 1, fd);
+    // fwrite(b, 1, sizeof(a), fd);
+    // fwrite(c, 1, sizeof(a), fd);
+    // fwrite(d, 1, sizeof(a), fd);
+    // fwrite(e, 1, sizeof(a), fd);
+    // fwrite(f, 1, sizeof(a), fd);
     // fwrite(a, sizeof(a), 1, fd);
     // fwrite(b, sizeof(b), 1, fd);
     // fwrite(c, sizeof(c), 1, fd);
