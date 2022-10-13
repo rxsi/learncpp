@@ -298,7 +298,7 @@ FILE *stream：FILE结构体指针
 2. 多线程write
 */
 
-void writeFunc(FILE *stream, char buf[])
+void writeFunc(FILE *stream, char (*buf)[11]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     int i = 200;
     while (i--)
@@ -308,7 +308,7 @@ void writeFunc(FILE *stream, char buf[])
         /*
         这里的fread会顺序的交替输出，证明了fread具有原子性，不会在读取的中间过程被线程切换
         */ 
-        ssize_t len = fwrite(buf, 1, sizeof(buf), stream);
+        ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
         if (len == 0)
         {
             std::cout << "write data err" << std::endl;
@@ -324,9 +324,9 @@ int main()
 {
     FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
     char buf1[] = "aaaaaaaaa";
-    std::thread t1(writeFunc, stream, buf1);
+    std::thread t1(writeFunc, stream, &buf1);
     char buf2[] = "bbbbbbbbb";
-    std::thread t2(writeFunc, stream, buf2);
+    std::thread t2(writeFunc, stream, &buf2);
     t1.join();
     t2.join();
     fclose(stream);
