@@ -364,26 +364,56 @@ FILE *stream：FILE结构体指针
 1. 多进程读
 */
 
-void readFunc()
+// void readFunc()
+// {
+//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+//     int i = 100;
+//     while (i--)
+//     {
+//         std::cout << "processID: " << getpid() << ", ";
+//         char buf[10];
+//         std::cout << "before ftell: " << ftell(stream) << ", ";
+//         size_t len = fread(buf, 1, sizeof(buf), stream); // 两个进程是交替输出的，而且ftell也不会交叉，因为两个进程的FILE结构是独立的
+//         std::cout << "len: " << len << ", ";
+//         if (len == 0)
+//         {
+//             std::cout << "empty data" << ", ";
+//         }
+//         else
+//         {
+//             std::cout << "data: " << buf << ", "; 
+//         }
+//         std::cout << "after ftell: " << ftell(stream) << std::endl;
+//     }
+// }
+
+// int main()
+// {
+//     pid_t pid = fork();
+//     if (pid == 0) // 子进程
+//     {
+//         readFunc();
+//     }
+//     else
+//     {
+//         readFunc();
+//     }
+// }
+
+
+/*
+2. 多进程写
+*/
+
+void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
-    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-    int i = 100;
+    int i = 200;
     while (i--)
     {
-        std::cout << "processID: " << getpid() << ", ";
-        char buf[10];
-        std::cout << "before ftell: " << ftell(stream) << ", ";
-        size_t len = fread(buf, 1, sizeof(buf), stream);
-        std::cout << "len: " << len << ", ";
-        if (len == 0)
-        {
-            std::cout << "empty data" << ", ";
-        }
-        else
-        {
-            std::cout << "data: " << buf << ", "; 
-        }
-        std::cout << "after ftell: " << ftell(stream) << std::endl;
+        /*
+        这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
+        */ 
+        ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
     }
 }
 
@@ -392,10 +422,14 @@ int main()
     pid_t pid = fork();
     if (pid == 0) // 子进程
     {
-        readFunc();
+        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
+        char buf[] = "aaaaaaaaa";
+        writeFunc(stream, &buf);
     }
     else
     {
-        readFunc();
+        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
+        char buf[] = "bbbbbbbbb";
+        writeFunc(stream, &buf);
     }
 }
