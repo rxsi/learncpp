@@ -372,16 +372,18 @@ void readFunc()
     {
         std::cout << "processID: " << getpid() << ", ";
         char buf[10];
+        std::cout << "before ftell: " << ftell(stream) << ", ";
         size_t len = fread(buf, 1, sizeof(buf), stream);
         std::cout << "len: " << len << ", ";
         if (len == 0)
         {
-            std::cout << "empty data" << std::endl;
+            std::cout << "empty data" << ", ";
         }
         else
         {
-            std::cout << "data: " << buf << std::endl; 
+            std::cout << "data: " << buf << ", "; 
         }
+        std::cout << "after ftell: " << ftell(stream) << std::endl;
     }
 }
 
