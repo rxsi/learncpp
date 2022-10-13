@@ -267,13 +267,16 @@ void readFunc(FILE *stream)
     char buf[11];
     while (i--)
     {
+        std::cout << "threadID: " << std::this_thread::get_id() << ", ";
+        std::cout << "before fread ftell: " << ftell(stream) << ", "; 
         ssize_t len = fread(buf, 1, sizeof(buf), stream);
         if (len == 0)
         {
-            std::cout << "threadID: " << std::this_thread::get_id() << " read empty data" << std::endl;
+            std::cout << "read emtpty data" << std::endl;
             break;
         }
-        std::cout << "threadID: " << std::this_thread::get_id() << ", ftell: " << ftell(stream) << ", data_len: " << len << ", data: " << buf << std::endl;
+        std::cout << "data_len: " << len << ", data: " << buf << ", ";
+        std::cout << "after fread ftell: " << ftell(stream) << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
