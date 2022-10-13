@@ -457,17 +457,71 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 // }
 
 // 这里使用加文件锁的方式
+// void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     int fd = fileno(stream);
+//     while (i--)
+//     {
+//         while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
+//         fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
+//         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
+//         flock(fd, LOCK_UN); // 使用完就解锁
+//     }
+// }
+
+// int main()
+// {
+//     pid_t pid = fork();
+//     if (pid == 0) // 子进程
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+//         char buf[] = "aaaaaaaaa";
+//         writeFunc(stream, &buf);
+//     }
+//     else
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+//         char buf[] = "bbbbbbbbb";
+//         writeFunc(stream, &buf);
+//     }
+// }
+
+/*
+3. 多进程写+读
+*/
+
+// 未加锁，那么会出现读取到别人写一半的内容
 void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     int i = 200;
-    int fd = fileno(stream);
     while (i--)
     {
-        while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
-        fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
-        flock(fd, LOCK_UN); // 使用完就解锁
+    }
+}
+
+void readFunc(FILE *stream)
+{
+    int i = 200;
+    while (i--)
+    {
+        std::cout << "processID: " << getpid() << ", ";
+        char buf[10];
+        std::cout << "before ftell: " << ftell(stream) << ", ";
+        size_t len = fread(buf, 1, sizeof(buf), stream); // 两个进程是交替输出的，而且ftell也不会交叉，因为两个进程的FILE结构是独立的
+        std::cout << "len: " << len << ", ";
+        if (len == 0)
+        {
+            std::cout << "empty data" << ", ";
+        }
+        else
+        {
+            std::cout << "data: " << buf << ", "; 
+        }
+        std::cout << "after ftell: " << ftell(stream) << std::endl;
     }
 }
 
@@ -477,13 +531,12 @@ int main()
     if (pid == 0) // 子进程
     {
         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
-        char buf[] = "aaaaaaaaa";
+        char buf[] = "abcdefghi";
         writeFunc(stream, &buf);
     }
     else
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
-        char buf[] = "bbbbbbbbb";
-        writeFunc(stream, &buf);
+        FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+        readFunc(stream);
     }
 }
