@@ -261,18 +261,57 @@ FILE *stream：FILE结构体指针
  /*
 1. 多线程读
 */
-void readFunc(FILE *stream)
+// void readFunc(FILE *stream)
+// {
+//     int i = 6;
+//     char buf[11];
+//     while (i--)
+//     {
+//         std::cout << "threadID: " << std::this_thread::get_id() << ", ";
+//         std::cout << "before fread ftell: " << ftell(stream) << ", ";
+//         /*
+//         这里的fread会顺序的交替输出，证明了fread具有原子性，不会在读取的中间过程被线程切换
+//         */ 
+//         ssize_t len = fread(buf, 1, sizeof(buf), stream);
+        
+//         if (len == 0)
+//         {
+//             std::cout << "read emtpty data" << std::endl;
+//             break;
+//         }
+//         std::cout << "data_len: " << len << ", data: " << buf << ", ";
+//         std::cout << "after fread ftell: " << ftell(stream) << std::endl;
+//     }
+// }
+
+// int main()
+// {
+//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+//     std::thread t1(readFunc, stream);
+//     std::thread t2(readFunc, stream);
+//     t1.join();
+//     t2.join();
+//     fclose(stream);
+// }
+
+/*
+2. 多线程write
+*/
+
+void writeFunc(FILE *stream, char buf[])
 {
-    int i = 6;
-    char buf[11];
+    int i = 200;
     while (i--)
     {
         std::cout << "threadID: " << std::this_thread::get_id() << ", ";
-        std::cout << "before fread ftell: " << ftell(stream) << ", "; 
-        ssize_t len = fread(buf, 1, sizeof(buf), stream); // 这里的输出是交替的，但是使用ftell是互相交叉的，原因在于fread是原子性不会被打断，而其他语句不具有原子性所以会受多线程影响
+        std::cout << "before fread ftell: " << ftell(stream) << ", ";
+        /*
+        这里的fread会顺序的交替输出，证明了fread具有原子性，不会在读取的中间过程被线程切换
+        */ 
+        ssize_t len = fwrite(buf, 1, sizeof(buf), stream);
         if (len == 0)
         {
-            std::cout << "read emtpty data" << std::endl;
+            std::cout << "write data err" << std::endl;
             break;
         }
         std::cout << "data_len: " << len << ", data: " << buf << ", ";
@@ -280,17 +319,13 @@ void readFunc(FILE *stream)
     }
 }
 
+
 int main()
 {
-    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-    std::thread t1(readFunc, stream);
-    std::thread t2(readFunc, stream);
+    FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
+    std::thread t1(writeFunc, stream, "aaaaaaaaa");
+    std::thread t2(writeFunc, stream, "bbbbbbbbb");
     t1.join();
     t2.join();
     fclose(stream);
 }
-
-// /*
-// 2. 多线程write
-// */
-
