@@ -11,6 +11,7 @@ TODO：测试是否是同个进程内的多线程的write，read是原子性的�
 #include <iostream> // cout, cin
 #include <unistd.h> // read, close
 #include <fstream>
+#include <sys/file.h>
 
 /*
 linux系统底层系统函数：
@@ -131,7 +132,7 @@ const char *mode：操作文件方式，可选有：
 "r+"或"rb+“或"r+b” 以读+写的方式打开文件，该文件必须存在
 "w+"或"wb+“或"w+b” 以读+写的方式打开文件，如果文件不存在会新建文件，并把文件长度截短为零，清空原有的内容
 "a+"或"ab+“或"a+b” 以只写方式打开文件，如果文件不存在会新建文件，不会清空原内容，新内容会追加在文件尾。（所以a是append的意思）
-字母b表示文件时一个二进制文件而不是文本文件。（linux下不区分二进制文件和文本文件）
+字母b表示文件时一个二进制文件而不是文本文件。（linux下不区分二进制文件和文本文件，windows下文本文件是以\r\n结尾而二进制文件是以\n结尾）
 
 成功则返回 FILE 结构体指针，否则返回NULL且会设置errno标识错误
 
@@ -227,6 +228,25 @@ FILE *stream：FILE结构体指针
 函数原型：long int ftell(FILE *stream)
 参数：
 FILE *stream：FILE结构体指针
+
+12. 在这种模式下要设置各种属性，需要借助fileno函数，用以将FILE结构体转换为对应的fd文件描述符
+fileno：返回指向FILE结构体的fd文件描述符
+头文件：<stdio.h>
+函数原型：int fileno(FILE *stream);
+参数：
+FILE *stream：FILE结构体指针
+
+flock：对文件描述符添加文件锁
+头文件：#include <sys/file.h>
+函数原型：int flock(int fd, int operation);
+参数：
+int fd：文件描述符
+int operation：锁类型，参数有：
+LOCK_SH：设置一个共享锁
+LOCK_EX：设置一个互斥锁
+LOCK_UN：移除本进程添加的共享/互斥锁
+该函数方法默认会阻塞直到加锁成功，可以使用LOCK_NB设置为非阻塞模式
+返回0则代表成功，-1则加锁失败，因此可以使用while循环判断加锁是否成功
 */
 
 /*
@@ -404,17 +424,48 @@ FILE *stream：FILE结构体指针
 /*
 2. 多进程写
 */
+// 使用append方法
+// void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     while (i--)
+//     {
+//         /*
+//         这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
+//         */ 
+//         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
+//     }
+// }
+
+// int main()
+// {
+//     pid_t pid = fork();
+//     if (pid == 0) // 子进程
+//     {
+//         // FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); // 以w方式打开之后两个进程会互相覆盖，结果是不可预知的，因此需要使用append的方式
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "a"); // 使用这种方式之后，底层每次在写之前都会获取最新的文件长度，然后再执行写入操作，因为本身操作具有原子性，因此就不会有互相覆盖问题了。
+//         char buf[] = "aaaaaaaaa";
+//         writeFunc(stream, &buf);
+//     }
+//     else
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "a"); 
+//         char buf[] = "bbbbbbbbb";
+//         writeFunc(stream, &buf);
+//     }
+// }
 
 void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     int i = 200;
+    int fd = fileno(stream);
     while (i--)
     {
-        /*
-        这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
-        */ 
+        while (flock(fd, LOCK_EX | LOCK_NB) != 0) {}
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
+        flock(fd, LOCK_UN);
     }
 }
 
@@ -424,7 +475,7 @@ int main()
     if (pid == 0) // 子进程
     {
         // FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); // 以w方式打开之后两个进程会互相覆盖，结果是不可预知的，因此需要使用append的方式
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "a"); 
+        FILE *stream = fopen("/home/rxsi/hello_world.txt", "a"); // 使用这种方式之后，底层每次在写之前都会获取最新的文件长度，然后再执行写入操作，因为本身操作具有原子性，因此就不会有互相覆盖问题了。
         char buf[] = "aaaaaaaaa";
         writeFunc(stream, &buf);
     }
