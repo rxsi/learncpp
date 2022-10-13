@@ -232,23 +232,23 @@ FILE *stream：FILE结构体指针
 /*
 写入内容
 */
-int main()
-{
-    FILE* fd = fopen("/home/rxsi/hello_world.txt", "w");
-    char a[] = "aaaaaaaaa\n";
-    char b[] = "bbbbbbbbb\n";
-    char c[] = "ccccccccc\n";
-    char d[] = "ddddddddd\n";
-    char e[] = "eeeeeeeee\n";
-    char f[] = "fffffffff\n";
-    fwrite(a, 1, sizeof(a), fd);
-    fwrite(b, 1, sizeof(a), fd);
-    fwrite(c, 1, sizeof(a), fd);
-    fwrite(d, 1, sizeof(a), fd);
-    fwrite(e, 1, sizeof(a), fd);
-    fwrite(f, 1, sizeof(a), fd);
-    fclose(fd);
-}
+// int main()
+// {
+//     FILE* fd = fopen("/home/rxsi/hello_world.txt", "w");
+//     char a[] = "aaaaaaaaa\n";
+//     char b[] = "bbbbbbbbb\n";
+//     char c[] = "ccccccccc\n";
+//     char d[] = "ddddddddd\n";
+//     char e[] = "eeeeeeeee\n";
+//     char f[] = "fffffffff\n";
+//     fwrite(a, 1, sizeof(a), fd);
+//     fwrite(b, 1, sizeof(a), fd);
+//     fwrite(c, 1, sizeof(a), fd);
+//     fwrite(d, 1, sizeof(a), fd);
+//     fwrite(e, 1, sizeof(a), fd);
+//     fwrite(f, 1, sizeof(a), fd);
+//     fclose(fd);
+// }
 
 
 // size_t getFileSize(const char* filename)
@@ -264,7 +264,7 @@ int main()
 void readFunc(FILE *stream)
 {
     char buf[11];
-    int i = 5;
+    int i = 6;
     while (i--)
     {
         ssize_t len = fread(buf, 1, sizeof(buf), stream);
