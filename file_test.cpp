@@ -366,11 +366,11 @@ FILE *stream：FILE结构体指针
 
 void readFunc()
 {
-    std::cout << "processID: " << getpid() << ", ";
     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
     int i = 100;
     while (i--)
     {
+        std::cout << "processID: " << getpid() << ", ";
         char buf[10];
         size_t len = fread(buf, 1, sizeof(buf), stream);
         std::cout << "len: " << len << ", ";
