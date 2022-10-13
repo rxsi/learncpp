@@ -263,11 +263,16 @@ FILE *stream：FILE结构体指针
 */
 void readFunc(FILE *stream)
 {
-    char buf[11];
     int i = 6;
+    char buf[11];
     while (i--)
     {
         ssize_t len = fread(buf, 1, sizeof(buf), stream);
+        if (len == 0)
+        {
+            std::cout << "threadID: " << std::this_thread::get_id() << " read empty data" << std::endl;
+            break;
+        }
         std::cout << "threadID: " << std::this_thread::get_id() << ", ftell: " << ftell(stream) << ", data_len: " << len << ", data: " << buf << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
