@@ -464,6 +464,7 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
     while (i--)
     {
         while (flock(fd, LOCK_EX | LOCK_NB) != 0) {}
+        fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
         flock(fd, LOCK_UN);
