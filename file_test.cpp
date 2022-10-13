@@ -323,8 +323,10 @@ void writeFunc(FILE *stream, char buf[])
 int main()
 {
     FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
-    std::thread t1(writeFunc, stream, "aaaaaaaaa");
-    std::thread t2(writeFunc, stream, "bbbbbbbbb");
+    char buf1[] = "aaaaaaaaa";
+    std::thread t1(writeFunc, stream, buf1);
+    char buf2[] = "bbbbbbbbb";
+    std::thread t2(writeFunc, stream, buf2);
     t1.join();
     t2.join();
     fclose(stream);
