@@ -126,11 +126,11 @@ open函数返回的是文件句柄，而fopen返回的是文件指针，即指�
 const char *path：文件路径
 const char *mode：操作文件方式，可选有：
 “r"或"rb” 以只读方式打开文件，该文件必须存在。
-“w"或"wb” 以写方式打开文件，并把文件长度截短为零。
-“a"或"ab” 以写方式打开文件，新内容追加在文件尾。
-"r+"或"rb+“或"r+b” 以更新方式打开（读和写）
-"w+"或"wb+“或"w+b” 以更新方式打开,并把文件长度截短为零。
-"a+"或"ab+“或"a+b” 以更新方式打开，新内容追加在文件尾。
+“w"或"wb” 以只写方式打开文件，如果文件不存在会新建文件，并把文件长度截短为零，清空原有的内容
+“a"或"ab” 以只写方式打开文件，如果文件不存在会新建文件，不会清空原内容，新内容会追加在文件尾。（所以a是append的意思）
+"r+"或"rb+“或"r+b” 以读+写的方式打开文件，该文件必须存在
+"w+"或"wb+“或"w+b” 以读+写的方式打开文件，如果文件不存在会新建文件，并把文件长度截短为零，清空原有的内容
+"a+"或"ab+“或"a+b” 以只写方式打开文件，如果文件不存在会新建文件，不会清空原内容，新内容会追加在文件尾。（所以a是append的意思）
 字母b表示文件时一个二进制文件而不是文本文件。（linux下不区分二进制文件和文本文件）
 
 成功则返回 FILE 结构体指针，否则返回NULL且会设置errno标识错误
@@ -423,13 +423,14 @@ int main()
     pid_t pid = fork();
     if (pid == 0) // 子进程
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
+        // FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); // 以w方式打开之后两个进程会互相覆盖，结果是不可预知的，因此需要使用append的方式
+        FILE *stream = fopen("/home/rxsi/hello_world.txt", "a"); 
         char buf[] = "aaaaaaaaa";
         writeFunc(stream, &buf);
     }
     else
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
+        FILE *stream = fopen("/home/rxsi/hello_world.txt", "a"); 
         char buf[] = "bbbbbbbbb";
         writeFunc(stream, &buf);
     }
