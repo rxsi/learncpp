@@ -298,35 +298,70 @@ FILE *stream：FILE结构体指针
 2. 多线程write
 */
 
+// void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     while (i--)
+//     {
+//         /*
+//         这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
+//         */ 
+//         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//     }
+// }
+
+
+// int main()
+// {
+//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
+//     char buf1[] = "aaaaaaaaa";
+//     std::thread t1(writeFunc, stream, &buf1);
+//     char buf2[] = "bbbbbbbbb";
+//     std::thread t2(writeFunc, stream, &buf2);
+//     t1.join();
+//     t2.join();
+//     fclose(stream);
+// }
+
+/*
+3. 多线程读+写
+*/
+
+void readFunc(FILE *stream) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+{
+    int i = 200;
+    char buf[10];
+    while (i--)
+    {
+        /*
+        这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
+        */
+        std::cout << "threadID: " << std::this_thread::get_id() << ", ";
+        ssize_t len = fread(buf, 1, sizeof(buf), stream);
+        std::cout << "fread len: " << len << std::endl;
+        if (len != 0) std::cout << "data: " << buf << std::endl;
+    }
+}
+
 void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     int i = 200;
     while (i--)
     {
-        // std::cout << "threadID: " << std::this_thread::get_id() << ", ";
-        // std::cout << "before fread ftell: " << ftell(stream) << ", ";
         /*
-        这里的fread会顺序的交替输出，证明了fread具有原子性，不会在读取的中间过程被线程切换
+        这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
         */ 
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-        // if (len == 0)
-        // {
-        //     std::cout << "write data err" << std::endl;
-        //     break;
-        // }
-        // std::cout << "data_len: " << len << ", data: " << buf << ", ";
-        // std::cout << "after fread ftell: " << ftell(stream) << std::endl;
     }
 }
 
 
 int main()
 {
-    FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
+    FILE *stream = fopen("/home/rxsi/hello_world.txt", "rw");
     char buf1[] = "aaaaaaaaa";
     std::thread t1(writeFunc, stream, &buf1);
-    char buf2[] = "bbbbbbbbb";
-    std::thread t2(writeFunc, stream, &buf2);
+    std::thread t2(readFunc, stream);
     t1.join();
     t2.join();
     fclose(stream);
