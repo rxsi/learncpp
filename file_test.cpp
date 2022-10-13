@@ -456,6 +456,7 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 //     }
 // }
 
+// 这里使用加文件锁的方式
 void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     int i = 200;
@@ -474,14 +475,13 @@ int main()
     pid_t pid = fork();
     if (pid == 0) // 子进程
     {
-        // FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); // 以w方式打开之后两个进程会互相覆盖，结果是不可预知的，因此需要使用append的方式
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "a"); // 使用这种方式之后，底层每次在写之前都会获取最新的文件长度，然后再执行写入操作，因为本身操作具有原子性，因此就不会有互相覆盖问题了。
+        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
         char buf[] = "aaaaaaaaa";
         writeFunc(stream, &buf);
     }
     else
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "a"); 
+        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
         char buf[] = "bbbbbbbbb";
         writeFunc(stream, &buf);
     }
