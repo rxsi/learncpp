@@ -326,39 +326,74 @@ FILE *stream：FILE结构体指针
 /*
 3. 多线程读+写
 */
+// void readFunc(FILE *stream)
+// {
+//     int i = 200;
+//     char buf[10];
+//     while (i--)
+//     {
+//         std::cout << "threadID: " << std::this_thread::get_id() << ", ";
+//         ssize_t len = fread(buf, 1, sizeof(buf), stream); // 这里每次都可以完整的读取一整行"aaaaaaaaa"，说明write和read是交替完成的
+//         std::cout << "fread len: " << len << std::endl;
+//         if (len != 0) std::cout << "data: " << buf << std::endl;
+//     }
+// }
 
-void readFunc(FILE *stream)
+// void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     while (i--)
+//     {
+//         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//     }
+// }
+
+
+// int main()
+// {
+//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "rw");
+//     char buf1[] = "aaaaaaaaa";
+//     std::thread t1(writeFunc, stream, &buf1);
+//     std::thread t2(readFunc, stream);
+//     t1.join();
+//     t2.join();
+//     fclose(stream);
+// }
+
+/*
+1. 多进程读
+*/
+
+void readFunc()
 {
-    int i = 200;
-    char buf[10];
+    std::cout << "processID: " << getpid() << ", ";
+    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+    int i = 100;
     while (i--)
     {
-        std::cout << "threadID: " << std::this_thread::get_id() << ", ";
-        ssize_t len = fread(buf, 1, sizeof(buf), stream); // 这里每次都可以完整的读取一整行"aaaaaaaaa"，说明write和read是交替完成的
-        std::cout << "fread len: " << len << std::endl;
-        if (len != 0) std::cout << "data: " << buf << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        char buf[10];
+        size_t len = fread(buf, 1, sizeof(buf), stream);
+        std::cout << "len: " << len << ", ";
+        if (len == 0)
+        {
+            std::cout << "empty data" << std::endl;
+        }
+        else
+        {
+            std::cout << "data: " << buf << std::endl; 
+        }
     }
 }
-
-void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
-{
-    int i = 200;
-    while (i--)
-    {
-        ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-    }
-}
-
 
 int main()
 {
-    FILE *stream = fopen("/home/rxsi/hello_world.txt", "rw");
-    char buf1[] = "aaaaaaaaa";
-    std::thread t1(writeFunc, stream, &buf1);
-    std::thread t2(readFunc, stream);
-    t1.join();
-    t2.join();
-    fclose(stream);
+    pid_t pid = fork();
+    if (pid == 0) // 子进程
+    {
+        readFunc();
+    }
+    else
+    {
+        readFunc();
+    }
 }
