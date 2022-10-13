@@ -269,7 +269,7 @@ void readFunc(FILE *stream)
     {
         std::cout << "threadID: " << std::this_thread::get_id() << ", ";
         std::cout << "before fread ftell: " << ftell(stream) << ", "; 
-        ssize_t len = fread(buf, 1, sizeof(buf), stream);
+        ssize_t len = fread(buf, 1, sizeof(buf), stream); // 这里的输出是交替的，但是使用ftell是互相交叉的，原因在于fread是原子性不会被打断，而其他语句不具有原子性所以会受多线程影响
         if (len == 0)
         {
             std::cout << "read emtpty data" << std::endl;
@@ -277,7 +277,6 @@ void readFunc(FILE *stream)
         }
         std::cout << "data_len: " << len << ", data: " << buf << ", ";
         std::cout << "after fread ftell: " << ftell(stream) << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
