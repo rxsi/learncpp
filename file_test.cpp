@@ -429,7 +429,7 @@ int main()
     else
     {
         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
-        char buf[] = "a";
+        char buf[] = "b";
         writeFunc(stream, &buf);
     }
 }
