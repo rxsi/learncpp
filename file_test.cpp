@@ -234,12 +234,12 @@ FILE *stream：FILE结构体指针
 int main()
 {
     FILE* fd = fopen("/home/rxsi/hello_world.txt", "w");
-    char a[] = "aaaaaaaaa";
-    char b[] = "bbbbbbbbb";
-    char c[] = "ccccccccc";
-    char d[] = "ddddddddd";
-    char e[] = "eeeeeeeee";
-    char f[] = "fffffffff";
+    char a[] = "aaaaaaaaa\n";
+    char b[] = "bbbbbbbbb\n";
+    char c[] = "ccccccccc\n";
+    char d[] = "ddddddddd\n";
+    char e[] = "eeeeeeeee\n";
+    char f[] = "fffffffff\n";
     fwrite(a, 1, sizeof(a), fd);
     fwrite(b, 1, sizeof(a), fd);
     fwrite(c, 1, sizeof(a), fd);
