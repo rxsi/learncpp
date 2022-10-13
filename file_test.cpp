@@ -327,19 +327,17 @@ FILE *stream：FILE结构体指针
 3. 多线程读+写
 */
 
-void readFunc(FILE *stream) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+void readFunc(FILE *stream)
 {
     int i = 200;
     char buf[10];
     while (i--)
     {
-        /*
-        这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
-        */
         std::cout << "threadID: " << std::this_thread::get_id() << ", ";
-        ssize_t len = fread(buf, 1, sizeof(buf), stream);
+        ssize_t len = fread(buf, 1, sizeof(buf), stream); // 这里每次都可以完整的读取一整行"aaaaaaaaa"，说明write和read是交替完成的
         std::cout << "fread len: " << len << std::endl;
         if (len != 0) std::cout << "data: " << buf << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
@@ -348,10 +346,8 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
     int i = 200;
     while (i--)
     {
-        /*
-        这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
-        */ 
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+        std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 }
 
