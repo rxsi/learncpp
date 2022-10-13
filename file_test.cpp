@@ -405,7 +405,7 @@ FILE *stream：FILE结构体指针
 2. 多进程写
 */
 
-void writeFunc(FILE *stream, char (*buf)[2]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     int i = 200;
     while (i--)
@@ -414,6 +414,7 @@ void writeFunc(FILE *stream, char (*buf)[2]) // char buf[]、char *buf、char bu
         这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
         */ 
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+        std::cout << "processID: " << getpid() << ", ftell: " << ftell() << std::endl;
     }
 }
 
@@ -423,13 +424,13 @@ int main()
     if (pid == 0) // 子进程
     {
         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
-        char buf[] = "a";
+        char buf[] = "aaaaaaaaa";
         writeFunc(stream, &buf);
     }
     else
     {
         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
-        char buf[] = "b";
+        char buf[] = "bbbbbbbbb";
         writeFunc(stream, &buf);
     }
 }
