@@ -268,8 +268,7 @@ void readFunc(FILE *stream)
     while (i--)
     {
         ssize_t len = fread(buf, 1, sizeof(buf), stream);
-        std::cout << "threadID: " << std::this_thread::get_id() << ", data_len: " << len << ", data: " << buf << std::endl;
-        std::cout << "tell: " << ftell(stream) << std::endl;
+        std::cout << "threadID: " << std::this_thread::get_id() << ", ftell: " << ftell(stream) << ", data_len: " << len << ", data: " << buf << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
