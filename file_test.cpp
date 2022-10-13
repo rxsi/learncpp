@@ -298,24 +298,24 @@ FILE *stream：FILE结构体指针
 2. 多线程write
 */
 
-void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+void writeFunc(FILE *stream, char (*buf)[11]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     int i = 200;
     while (i--)
     {
-        std::cout << "threadID: " << std::this_thread::get_id() << ", ";
-        std::cout << "before fread ftell: " << ftell(stream) << ", ";
+        // std::cout << "threadID: " << std::this_thread::get_id() << ", ";
+        // std::cout << "before fread ftell: " << ftell(stream) << ", ";
         /*
         这里的fread会顺序的交替输出，证明了fread具有原子性，不会在读取的中间过程被线程切换
         */ 
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-        if (len == 0)
-        {
-            std::cout << "write data err" << std::endl;
-            break;
-        }
-        std::cout << "data_len: " << len << ", data: " << buf << ", ";
-        std::cout << "after fread ftell: " << ftell(stream) << std::endl;
+        // if (len == 0)
+        // {
+        //     std::cout << "write data err" << std::endl;
+        //     break;
+        // }
+        // std::cout << "data_len: " << len << ", data: " << buf << ", ";
+        // std::cout << "after fread ftell: " << ftell(stream) << std::endl;
     }
 }
 
@@ -323,9 +323,9 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
 int main()
 {
     FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
-    char buf1[] = "aaaaaaaaa";
+    char buf1[] = "aaaaaaaaa\n";
     std::thread t1(writeFunc, stream, &buf1);
-    char buf2[] = "bbbbbbbbb";
+    char buf2[] = "bbbbbbbbb\n";
     std::thread t2(writeFunc, stream, &buf2);
     t1.join();
     t2.join();
