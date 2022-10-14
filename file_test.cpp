@@ -548,7 +548,7 @@ void readFunc(FILE *stream)
     while (i--)
     {
         std::cout << "processID: " << getpid() << ", ";
-        char buf[58];
+        char buf[20];
         std::cout << "before ftell: " << ftell(stream) << ", ";
         size_t len = fread(buf, 1, sizeof(buf), stream);
         std::cout << "len: " << len << ", ";
