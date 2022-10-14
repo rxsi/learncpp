@@ -128,10 +128,10 @@ const char *path：文件路径
 const char *mode：操作文件方式，可选有：
 “r"或"rb” 以只读方式打开文件，该文件必须存在。
 “w"或"wb” 以只写方式打开文件，如果文件不存在会新建文件，并把文件长度截短为零，清空原有的内容
-“a"或"ab” 以只写方式打开文件，如果文件不存在会新建文件，不会清空原内容，新内容会追加在文件尾。（所以a是append的意思）
+“a"或"ab” 以只写方式打开文件，如果文件不存在会新建文件，不会清空原内容，新内容会追加在文件尾。（a是append的意思）
 "r+"或"rb+“或"r+b” 以读+写的方式打开文件，该文件必须存在
 "w+"或"wb+“或"w+b” 以读+写的方式打开文件，如果文件不存在会新建文件，并把文件长度截短为零，清空原有的内容
-"a+"或"ab+“或"a+b” 以只写方式打开文件，如果文件不存在会新建文件，不会清空原内容，新内容会追加在文件尾。（所以a是append的意思）
+"a+"或"ab+“或"a+b” 以读+写的方式打开文件，如果文件不存在会新建文件，不会清空原内容，新内容会追加在文件尾。（a是append的意思）
 字母b表示文件时一个二进制文件而不是文本文件。（linux下不区分二进制文件和文本文件，windows下文本文件是以\r\n结尾而二进制文件是以\n结尾）
 
 成功则返回 FILE 结构体指针，否则返回NULL且会设置errno标识错误
@@ -246,7 +246,7 @@ LOCK_SH：设置一个共享锁
 LOCK_EX：设置一个互斥锁
 LOCK_UN：移除本进程添加的共享/互斥锁
 该函数方法默认会阻塞直到加锁成功，可以使用LOCK_NB设置为非阻塞模式
-返回0则代表成功，-1则加锁失败，因此可以使用while循环判断加锁是否成功
+返回0则代表成功，-1则加锁失败，因此可以使用while循环判断加锁是否成功，当使用dup()或fork()时不会继承该文件锁！！！
 */
 
 /*
@@ -493,16 +493,55 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 */
 
 // 未加锁，那么会出现读取到别人写一半的内容
-void writeFunc(FILE *stream, char (*buf)[58]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
-{
-    int i = 200;
-    while (i--)
-    {
-        ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-        std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
-    }
-}
+// void writeFunc(FILE *stream, char (*buf)[58]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     while (i--)
+//     {
+//         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
+//     }
+// }
 
+// void readFunc(FILE *stream)
+// {
+//     int i = 200;
+//     while (i--)
+//     {
+//         std::cout << "processID: " << getpid() << ", ";
+//         char buf[58];
+//         std::cout << "before ftell: " << ftell(stream) << ", ";
+//         size_t len = fread(buf, 1, sizeof(buf), stream);
+//         std::cout << "len: " << len << ", ";
+//         if (len == 0)
+//         {
+//             std::cout << "empty data" << ", ";
+//         }
+//         else
+//         {
+//             std::cout << "data: " << buf << ", "; 
+//         }
+//         std::cout << "after ftell: " << ftell(stream) << std::endl;
+//     }
+// }
+
+// int main()
+// {
+//     pid_t pid = fork();
+//     if (pid == 0) // 子进程
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+//         char buf[] = "abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920";
+//         writeFunc(stream, &buf);
+//     }
+//     else
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+//         readFunc(stream);
+//     }
+// }
+
+// 父子进程共享file结构
 void readFunc(FILE *stream)
 {
     int i = 200;
@@ -528,15 +567,13 @@ void readFunc(FILE *stream)
 int main()
 {
     pid_t pid = fork();
+    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
     if (pid == 0) // 子进程
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
-        char buf[] = "abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920";
-        writeFunc(stream, &buf);
+        readFunc(stream);
     }
     else
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
         readFunc(stream);
     }
 }
