@@ -544,7 +544,7 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 // 父子进程共享file结构
 void readFunc(FILE *stream)
 {
-    int i = 200;
+    int i = 100;
     while (i--)
     {
         std::cout << "processID: " << getpid() << ", ";
@@ -566,13 +566,10 @@ void readFunc(FILE *stream)
 
 int main()
 {
-    pid_t pid = fork();
     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+    readFunc(stream);
+    pid_t pid = fork();
     if (pid == 0) // 子进程
-    {
-        readFunc(stream);
-    }
-    else
     {
         readFunc(stream);
     }
