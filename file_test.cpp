@@ -12,6 +12,7 @@ TODO：测试是否是同个进程内的多线程的write，read是原子性的�
 #include <unistd.h> // read, close
 #include <fstream>
 #include <sys/file.h>
+#include <sys/wait.h>
 
 /*
 linux系统底层系统函数：
@@ -571,7 +572,11 @@ int main()
     pid_t pid = fork();
     if (pid == 0) // 子进程
     {
-        std::this_thread::sleep_for(std::chrono::seconds(10));
         readFunc(stream);
+    }
+    else
+    {
+        int status = 0;
+        wait(&status);
     }
 }
