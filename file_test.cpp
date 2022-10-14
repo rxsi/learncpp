@@ -494,19 +494,59 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 */
 
 // 未加锁，那么会出现读取到别人写一半的内容
-// void writeFunc(FILE *stream, char (*buf)[58]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
-// {
-//     int i = 200;
-//     while (i--)
-//     {
-//         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-//         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
-//     }
-// }
+void writeFunc(FILE *stream, char (*buf)[6670]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+{
+    // int i = 200;
+    // while (i--)
+    // {
+    ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+    std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << ", write success" << std::endl;
+    // }
+}
 
+void readFunc(FILE *stream)
+{
+    // int i = 200;
+    // while (i--)
+    // {
+    std::cout << "processID: " << getpid() << ", ";
+    char buf[200];
+    std::cout << "before ftell: " << ftell(stream) << ", ";
+    size_t len = fread(buf, 1, sizeof(buf), stream);
+    std::cout << "len: " << len << ", ";
+    if (len == 0)
+    {
+        std::cout << "empty data" << ", ";
+    }
+    else
+    {
+        std::cout << "data: " << buf << ", "; 
+    }
+    std::cout << "after ftell: " << ftell(stream) << std::endl;
+    // }
+}
+
+int main()
+{
+    pid_t pid = fork();
+    if (pid == 0) // 子进程
+    {
+        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+        char buf[] = "abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920";
+        writeFunc(stream, &buf);
+    }
+    else
+    {
+        FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+        readFunc(stream);
+    }
+}
+
+// 父子进程共享file结构
+// 父进程先调用readFunc，后再由子进程继续调用readFunc，此时他们输出的ftell是连续的，因此证明了父子进程是共享file结构的。
 // void readFunc(FILE *stream)
 // {
-//     int i = 200;
+//     int i = 100;
 //     while (i--)
 //     {
 //         std::cout << "processID: " << getpid() << ", ";
@@ -528,55 +568,16 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 
 // int main()
 // {
+//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+//     readFunc(stream);
 //     pid_t pid = fork();
 //     if (pid == 0) // 子进程
 //     {
-//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
-//         char buf[] = "abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920";
-//         writeFunc(stream, &buf);
+//         readFunc(stream);
 //     }
 //     else
 //     {
-//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-//         readFunc(stream);
+//         int status = 0;
+//         wait(&status); // 等待子进程退出
 //     }
 // }
-
-// 父子进程共享file结构
-void readFunc(FILE *stream)
-{
-    int i = 100;
-    while (i--)
-    {
-        std::cout << "processID: " << getpid() << ", ";
-        char buf[58];
-        std::cout << "before ftell: " << ftell(stream) << ", ";
-        size_t len = fread(buf, 1, sizeof(buf), stream);
-        std::cout << "len: " << len << ", ";
-        if (len == 0)
-        {
-            std::cout << "empty data" << ", ";
-        }
-        else
-        {
-            std::cout << "data: " << buf << ", "; 
-        }
-        std::cout << "after ftell: " << ftell(stream) << std::endl;
-    }
-}
-
-int main()
-{
-    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-    readFunc(stream);
-    pid_t pid = fork();
-    if (pid == 0) // 子进程
-    {
-        readFunc(stream);
-    }
-    else
-    {
-        int status = 0;
-        wait(&status);
-    }
-}
