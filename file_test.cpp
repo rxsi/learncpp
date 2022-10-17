@@ -323,7 +323,7 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
 {
     int i = 200;
     int fd = fileno(stream);
-    flock lock;
+    struct flock lock;
     lock.l_whence = SEEK_SET;
     lock.l_start = 0;
     lock.l_len = 0;
