@@ -334,15 +334,16 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
 
 int main()
 {
-    FILE *stream = fopen("/home/rxsi/hello_world.txt", "a+");
+    FILE *stream1 = fopen("/home/rxsi/hello_world.txt", "a+");
     char buf1[] = "aaaaaaaaa";
-    std::thread t1(writeFunc, stream, &buf1);
+    std::thread t1(writeFunc, stream1, &buf1);
     FILE *stream2 = fopen("/home/rxsi/hello_world.txt", "a+");
     char buf2[] = "bbbbbbbbb";
-    std::thread t2(writeFunc, stream, &buf2);
+    std::thread t2(writeFunc, stream2, &buf2);
     t1.join();
     t2.join();
-    fclose(stream);
+    fclose(stream1);
+    fclose(stream2);
 }
 
 /*
