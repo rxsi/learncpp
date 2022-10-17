@@ -332,6 +332,7 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
         lock.l_type = F_WRLCK;
         while (fcntl(fd, F_SETLK, &lock) != 0)
         {
+            std::cout << "thredID: " << std::this_thread::get_id() << ", write success" << std::endl;
             ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
             lock.l_type = F_UNLCK;
             fcntl(fd, F_SETLK, &lock);    
