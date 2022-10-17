@@ -319,30 +319,31 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 2. 多线程write
 */
 
-// void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
-// {
-//     int i = 200;
-//     while (i--)
-//     {
-//         /*
-//         这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
-//         */ 
-//         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-//     }
-// }
+void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+{
+    int i = 200;
+    while (i--)
+    {
+        /*
+        这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
+        */ 
+        ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+    }
+}
 
 
-// int main()
-// {
-//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
-//     char buf1[] = "aaaaaaaaa";
-//     std::thread t1(writeFunc, stream, &buf1);
-//     char buf2[] = "bbbbbbbbb";
-//     std::thread t2(writeFunc, stream, &buf2);
-//     t1.join();
-//     t2.join();
-//     fclose(stream);
-// }
+int main()
+{
+    FILE *stream = fopen("/home/rxsi/hello_world.txt", "a+");
+    char buf1[] = "aaaaaaaaa";
+    std::thread t1(writeFunc, stream, &buf1);
+    FILE *stream2 = fopen("/home/rxsi/hello_world.txt", "a+");
+    char buf2[] = "bbbbbbbbb";
+    std::thread t2(writeFunc, stream, &buf2);
+    t1.join();
+    t2.join();
+    fclose(stream);
+}
 
 /*
 3. 多线程读+写
@@ -372,10 +373,10 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 
 // int main()
 // {
-//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "rw");
+//     FILE *stream1 = fopen("/home/rxsi/hello_world.txt", "a+");
 //     char buf1[] = "aaaaaaaaa";
 //     std::thread t1(writeFunc, stream, &buf1);
-//     std::thread t2(readFunc, stream);
+//     std::thread t2(readFunc, stream, &buf1);
 //     t1.join();
 //     t2.join();
 //     fclose(stream);
@@ -468,7 +469,7 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
         fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
-        if (i == 0) flock(fd, LOCK_UN); // 使用完就解锁
+        if (i == 0) flock(fd, LOCK_UN); // 通过这个方式可以使进程A先执行完再释放锁，因为flock如果fd已经持有锁则可重入，但是只需要解锁一次。
     }
 }
 
