@@ -474,17 +474,53 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 // }
 
 // 这里使用加文件锁的方式
-void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     int fd = fileno(stream);
+//     while (i--)
+//     {
+//         int ret = flock(fd, LOCK_EX);
+//         if (ret != 0) std::cout << "lock err" << std::endl; // 简单处理，一般不会加锁失败
+//         // while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
+//         fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
+//         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
+//         flock(fd, LOCK_UN);
+//         // if (i == 0) flock(fd, LOCK_UN); // 通过这个方式可以使进程A先执行完再释放锁，因为flock如果fd已经持有锁则可重入，但是只需要解锁一次。
+//     }
+// }
+
+// int main()
+// {
+//     pid_t pid = fork();
+//     if (pid == 0) // 子进程
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+//         char buf[] = "aaaaaaaaa";
+//         writeFunc(stream, &buf);
+//     }
+//     else
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+//         char buf[] = "bbbbbbbbb";
+//         writeFunc(stream, &buf);
+//     }
+// }
+
+
+void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     int i = 200;
-    int fd = fileno(stream);
     while (i--)
     {
         int ret = flock(fd, LOCK_EX);
         if (ret != 0) std::cout << "lock err" << std::endl; // 简单处理，一般不会加锁失败
         // while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
-        fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
-        ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+        lseek(fd,0, SEEK_END);
+        // fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
+        ssize_t len = write(fd, buf, sizeof(*buf));
+        // ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
         flock(fd, LOCK_UN);
         // if (i == 0) flock(fd, LOCK_UN); // 通过这个方式可以使进程A先执行完再释放锁，因为flock如果fd已经持有锁则可重入，但是只需要解锁一次。
@@ -496,15 +532,15 @@ int main()
     pid_t pid = fork();
     if (pid == 0) // 子进程
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+        int fd = open("/home/rxsi/hello_world.txt", O_WRONLY | O_TRUNC);
         char buf[] = "aaaaaaaaa";
-        writeFunc(stream, &buf);
+        writeFunc(fd, &buf);
     }
     else
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+        int fd = open("/home/rxsi/hello_world.txt", O_WRONLY | O_TRUNC);
         char buf[] = "bbbbbbbbb";
-        writeFunc(stream, &buf);
+        writeFunc(fd, &buf);
     }
 }
 
