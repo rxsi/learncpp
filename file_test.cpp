@@ -322,12 +322,20 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     int i = 200;
+    int fd = fileno(stream);
+    flock lock;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
     while (i--)
     {
-        /*
-        这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
-        */ 
-        ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+        lock.l_type = F_WRLCK;
+        while (fcntl(fd, F_SETLK, &lock) != 0)
+        {
+            ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+            lock.l_type = F_UNLCK;
+            fcntl(fd, F_SETLK, &lock);    
+        }
     }
 }
 
