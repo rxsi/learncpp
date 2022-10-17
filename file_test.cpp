@@ -459,36 +459,36 @@ int main()
 // }
 
 // 这里使用加文件锁的方式
-void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
-{
-    int i = 200;
-    int fd = fileno(stream);
-    while (i--)
-    {
-        while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
-        fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
-        ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-        std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
-        if (i == 0) flock(fd, LOCK_UN); // 通过这个方式可以使进程A先执行完再释放锁，因为flock如果fd已经持有锁则可重入，但是只需要解锁一次。
-    }
-}
+// void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     int fd = fileno(stream);
+//     while (i--)
+//     {
+//         while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
+//         fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
+//         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
+//         if (i == 0) flock(fd, LOCK_UN); // 通过这个方式可以使进程A先执行完再释放锁，因为flock如果fd已经持有锁则可重入，但是只需要解锁一次。
+//     }
+// }
 
-int main()
-{
-    pid_t pid = fork();
-    if (pid == 0) // 子进程
-    {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
-        char buf[] = "aaaaaaaaa";
-        writeFunc(stream, &buf);
-    }
-    else
-    {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
-        char buf[] = "bbbbbbbbb";
-        writeFunc(stream, &buf);
-    }
-}
+// int main()
+// {
+//     pid_t pid = fork();
+//     if (pid == 0) // 子进程
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+//         char buf[] = "aaaaaaaaa";
+//         writeFunc(stream, &buf);
+//     }
+//     else
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+//         char buf[] = "bbbbbbbbb";
+//         writeFunc(stream, &buf);
+//     }
+// }
 
 /*
 3. 多进程写+读
