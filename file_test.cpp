@@ -481,7 +481,7 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
     while (i--)
     {
         int ret = flock(fd, LOCK_EX);
-        if (ret != 0) std:cout << "lock err" << std::endl; // 简单处理，一般不会加锁失败
+        if (ret != 0) std::cout << "lock err" << std::endl; // 简单处理，一般不会加锁失败
         // while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
         fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
