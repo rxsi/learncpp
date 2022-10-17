@@ -521,7 +521,7 @@ void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]
         // fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
         ssize_t len = write(fd, buf, sizeof(*buf));
         // ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-        std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
+        std::cout << "processID: " << getpid() << ", ftell: " << lseek(fd, 0, SEEK_CUR) << std::endl;
         flock(fd, LOCK_UN);
         // if (i == 0) flock(fd, LOCK_UN); // 通过这个方式可以使进程A先执行完再释放锁，因为flock如果fd已经持有锁则可重入，但是只需要解锁一次。
     }
