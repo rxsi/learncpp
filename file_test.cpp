@@ -517,7 +517,7 @@ void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]
         int ret = flock(fd, LOCK_EX);
         if (ret != 0) std::cout << "lock err" << std::endl; // 简单处理，一般不会加锁失败
         // while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
-        lseek(fd,0, SEEK_END);
+        lseek(fd, 0, SEEK_END);
         // fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
         ssize_t len = write(fd, buf, sizeof(*buf));
         // ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
@@ -541,6 +541,8 @@ int main()
         int fd = open("/home/rxsi/hello_world.txt", O_WRONLY | O_TRUNC);
         char buf[] = "bbbbbbbbb";
         writeFunc(fd, &buf);
+        int status = 0;
+        wait(&status);
     }
 }
 
