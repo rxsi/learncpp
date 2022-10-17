@@ -324,15 +324,17 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
 {
     int i = 200;
     int fd = fileno(stream);
-    struct flock lock;
-    memset (&lock, 0, sizeof(lock));
-    lock.l_whence = SEEK_SET;
-    lock.l_start = 0;
-    lock.l_len = 0;
+    // struct flock lock;
+    // memset (&lock, 0, sizeof(lock));
+    // lock.l_whence = SEEK_SET;
+    // lock.l_start = 0;
+    // lock.l_len = 0;
     while (i--)
     {
-        lock.l_type = F_WRLCK;
-        fcntl(fd, F_SETLK, &lock);
+        while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
+        // lock.l_type = F_WRLCK;
+
+        // fcntl(fd, F_SETLK, &lock);
         fseek(stream, 0, SEEK_END); // 移动到文件尾
         std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << ftell(stream) << std::endl;
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
