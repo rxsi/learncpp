@@ -330,6 +330,7 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
     while (i--)
     {
         lock.l_type = F_WRLCK;
+        std::cout << "try to lock" << std::endl;
         while (fcntl(fd, F_SETLK, &lock) != 0)
         {
             std::cout << "thredID: " << std::this_thread::get_id() << ", write success" << std::endl;
