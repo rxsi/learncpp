@@ -13,6 +13,7 @@ TODO：测试是否是同个进程内的多线程的write，read是原子性的�
 #include <fstream>
 #include <sys/file.h>
 #include <sys/wait.h>
+#include <string.h>
 
 /*
 linux系统底层系统函数：
