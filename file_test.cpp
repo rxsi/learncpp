@@ -330,10 +330,7 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
     while (i--)
     {
         lock.l_type = F_WRLCK;
-        while (fcntl(fd, F_SETLK, &lock) != 0) 
-        {
-            std::cout << "lock fail" << std::endl;
-        }
+        fcntl(fd, F_SETLK, &lock);
         fseek(stream, 0, SEEK_END); // 移动到文件尾
         std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << ftell(stream) << std::endl;
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
