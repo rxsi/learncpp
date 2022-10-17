@@ -468,7 +468,7 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
         fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
-        // flock(fd, LOCK_UN); // 使用完就解锁
+        if (i == 0) flock(fd, LOCK_UN); // 使用完就解锁
     }
 }
 
