@@ -443,7 +443,7 @@ int main()
 //     while (i--)
 //     {
 //         /*
-//         这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
+//         这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "bbbbbbbbb" file 可以查看
 //         */ 
 //         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
 //         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
