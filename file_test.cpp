@@ -331,7 +331,9 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
     // lock.l_len = 0;
     while (i--)
     {
-        while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
+        while (flock(fd, LOCK_EX | LOCK_NB) != 0) {
+            std::cout << "lock fail" << std::endl;
+        } // 使用while循环非阻塞加锁直到成功
         // lock.l_type = F_WRLCK;
 
         // fcntl(fd, F_SETLK, &lock);
