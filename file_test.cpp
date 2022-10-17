@@ -339,10 +339,10 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
         fseek(stream, 0, SEEK_END); // 移动到文件尾
         std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << ftell(stream) << std::endl;
         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-        flock(fd, LOCK_UN);
         // lock.l_type = F_UNLCK;
         // fcntl(fd, F_SETLK, &lock);
     }
+    flock(fd, LOCK_UN);
 }
 
 
