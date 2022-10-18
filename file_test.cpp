@@ -713,12 +713,13 @@ void readFunc(FILE *stream)
 {
     int i = 29;
     char buf[145];
-    int start = 0;
-    int step = 5;
+    int step = 0;
     while (i--)
     {
-        size_t len = fread(buf, start, step, stream);
-        start += step;
+        char temp[5];
+        size_t len = fread(temp, 1, sizeof(temp), stream);
+        memcpy(buf+step, temp, sizeof(temp));
+        step += 5;
     }
     std::cout << buf << std::endl;
 }
