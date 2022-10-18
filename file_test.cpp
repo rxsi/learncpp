@@ -283,39 +283,39 @@ LOCK_UN：移除本进程添加的共享/互斥锁
  /*
 1. 多线程读
 */
-void readFunc(FILE *stream)
-{
-    int i = 6;
-    char buf[11];
-    while (i--)
-    {
-        std::cout << "threadID: " << std::this_thread::get_id() << ", ";
-        std::cout << "before fread ftell: " << ftell(stream) << ", ";
-        /*
-        这里的fread会顺序的交替输出，证明了fread具有原子性，不会在读取的中间过程被线程切换
-        */ 
-        ssize_t len = fread(buf, 1, sizeof(buf), stream);
+// void readFunc(FILE *stream)
+// {
+//     int i = 6;
+//     char buf[11];
+//     while (i--)
+//     {
+//         std::cout << "threadID: " << std::this_thread::get_id() << ", ";
+//         std::cout << "before fread ftell: " << ftell(stream) << ", ";
+//         /*
+//         这里的fread会顺序的交替输出，证明了fread具有原子性，不会在读取的中间过程被线程切换
+//         */ 
+//         ssize_t len = fread(buf, 1, sizeof(buf), stream);
         
-        if (len == 0)
-        {
-            std::cout << "read emtpty data" << std::endl;
-            break;
-        }
-        std::cout << "data_len: " << len << ", data: " << buf << ", ";
-        int fd = fileno(stream);
-        std::cout << "after fread ftell: " << ftell(stream) << ", stream->_file: " << stream->_file << ", fd: " << fd << std::endl;
-    }
-}
+//         if (len == 0)
+//         {
+//             std::cout << "read emtpty data" << std::endl;
+//             break;
+//         }
+//         std::cout << "data_len: " << len << ", data: " << buf << ", ";
+//         int fd = fileno(stream);
+//         std::cout << "after fread ftell: " << ftell(stream) << ", stream->_file: " << stream->_file << ", fd: " << fd << std::endl;
+//     }
+// }
 
-int main()
-{
-    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-    std::thread t1(readFunc, stream);
-    std::thread t2(readFunc, stream);
-    t1.join();
-    t2.join();
-    fclose(stream);
-}
+// int main()
+// {
+//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+//     std::thread t1(readFunc, stream);
+//     std::thread t2(readFunc, stream);
+//     t1.join();
+//     t2.join();
+//     fclose(stream);
+// }
 
 /*
 2. 多线程write
@@ -465,6 +465,48 @@ int main()
 //     t2.join();
 //     fclose(stream);
 // }
+
+void readFunc(FILE *stream)
+{
+    int i = 100;
+    while (i--)
+    {
+        std::cout << "processID: " << getpid() << ", ";
+        char buf[10];
+        std::cout << "before ftell: " << ftell(stream) << ", ";
+        size_t len = fread(buf, 1, sizeof(buf), stream); // 两个进程是交替输出的，而且ftell也不会交叉，因为两个进程的FILE结构是独立的
+        std::cout << "len: " << len << ", ";
+        if (len == 0)
+        {
+            std::cout << "empty data" << ", ";
+        }
+        else
+        {
+            std::cout << "data: " << buf << ", "; 
+        }
+        std::cout << "after ftell: " << ftell(stream) << std::endl;
+    }
+}
+
+int main()
+{
+    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+    pid_t pid = fork();
+    if (pid == 0)
+    {
+        readFunc(stream);
+    }
+    else
+    {
+        readFunc(stream);
+        int status;
+        wait(&status);
+    }
+}
+
+
+
+
 
 /*
 1. 多进程读
