@@ -734,6 +734,10 @@ int main()
         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
         char buf1[] = "aaaaaaaaaa";
         writeFunc(stream, &buf1); // 先写入了aaaaaaaaa
+        fseek(stream, 0, SEEK_SET); // 把文件偏移量设置回文件开头
+        char temp[10];
+        size_t len = fread(temp, 1, sizeof(temp), stream);
+        std::cout << temp << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(5));
         fseek(stream, 0, SEEK_SET); // 把文件偏移量设置回文件开头
         char buf2[] = "bbbbbbbbbb";
