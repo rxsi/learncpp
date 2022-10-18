@@ -720,6 +720,7 @@ void readFunc(FILE *stream)
         size_t len = fread(temp, 1, sizeof(temp), stream);
         memcpy(buf+step, temp, sizeof(temp));
         step += 5;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     std::cout << buf << std::endl;
 }
@@ -732,6 +733,7 @@ int main()
         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
         char buf1[] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         writeFunc(stream, &buf1); // 先写入了aaaaaaaaa
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         fseek(stream, 0, SEEK_SET); // 把文件偏移量设置回文件开头
         char buf2[] = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
         writeFunc(stream, &buf2); // 再从头写入bbbbbbbbb
