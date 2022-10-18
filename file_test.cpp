@@ -403,7 +403,7 @@ void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]
     while (i--)
     {
         lock.l_type = F_WRLCK;
-        int ret = fcntl(fd, F_SETLK, &lock);
+        int ret = fcntl(fd, F_SETLKW, &lock);
         if (ret != 0) std::cout << "lock fail" << std::endl;
         lseek(fd, 0, SEEK_END);// 移动到文件尾
         std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << lseek(fd, 0, SEEK_CUR) << std::endl;
