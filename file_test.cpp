@@ -702,7 +702,7 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 */
 
 // 未加锁，那么会出现读取到别人写一半的内容
-void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+void writeFunc(FILE *stream, char (*buf)[145]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
     std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << ", write success" << std::endl;
@@ -712,21 +712,13 @@ void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char b
 void readFunc(FILE *stream)
 {
     int i = 2;
-    char buf[10];
+    char buf[145];
     int start = 0;
+    int step = 20;
     while (i--)
     {
-        size_t len = fread(buf, start, 5, stream);
-        // std::cout << "len: " << len << ", ";
-        // if (len == 0)
-        // {
-        //     std::cout << "empty data" << ", ";
-        // }
-        // else
-        // {
-        //     std::cout << "data: " << buf << ", "; 
-        // }
-        start += 5;
+        size_t len = fread(buf, start, step, stream);
+        start += step;
     }
     std::cout << buf << std::endl;
 }
@@ -737,10 +729,10 @@ int main()
     if (pid == 0) // 子进程，先写入aaaaaaaaa，然后再写入bbbbbbbbb
     {
         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
-        char buf1[] = "aaaaaaaaa";
+        char buf1[] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         writeFunc(stream, &buf1); // 先写入了aaaaaaaaa
         fseek(stream, 0, SEEK_SET); // 把文件偏移量设置回文件开头
-        char buf2[] = "bbbbbbbbb";
+        char buf2[] = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
         writeFunc(stream, &buf2); // 再从头写入bbbbbbbbb
     }
     else
