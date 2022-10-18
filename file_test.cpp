@@ -742,7 +742,7 @@ int main()
     else
     {
         FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         readFunc(stream);
         int status = 0;
         wait(&status);
