@@ -14,6 +14,7 @@ TODO：测试是否是同个进程内的多线程的write，read是原子性的�
 #include <sys/file.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <string>
 
 /*
 linux系统底层系统函数：
@@ -505,7 +506,7 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 //     }
 // }
 
-void readFunc(string flag, FILE *stream)
+void readFunc(std::string flag, FILE *stream)
 {
     int i = 100;
     while (i--)
