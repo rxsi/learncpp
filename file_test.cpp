@@ -533,10 +533,16 @@ int main()
     pid_t pid = fork();
     if (pid == 0)
     {
+        std::cout << "child: " << std::endl;
+        std::cout << &stream << std::endl;
+        std::cout << stream << std::endl;
         readFunc(stream);
     }
     else
     {
+        std::cout << "parent: " << std::endl;
+        std::cout << &stream << std::endl;
+        std::cout << stream << std::endl;
         readFunc(stream);
         int status;
         wait(&status);
