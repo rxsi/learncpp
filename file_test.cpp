@@ -409,8 +409,8 @@ void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]
         std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << lseek(fd, 0, SEEK_CUR) << std::endl;
         ssize_t len = write(fd, buf, sizeof(*buf));
     }
-    lock.l_type = F_UNLCK;
-    fcntl(fd, F_SETLK, &lock);
+    // lock.l_type = F_UNLCK;
+    // fcntl(fd, F_SETLK, &lock);
 }
 
 
