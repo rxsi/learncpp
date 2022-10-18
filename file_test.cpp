@@ -711,10 +711,10 @@ void writeFunc(FILE *stream, char (*buf)[145]) // char buf[]、char *buf、char 
 // 假设当前读取缓存区不足以一次性读取所有的数据，因此分了两次进行读取
 void readFunc(FILE *stream)
 {
-    int i = 2;
+    int i = 45;
     char buf[145];
     int start = 0;
-    int step = 20;
+    int step = 3;
     while (i--)
     {
         size_t len = fread(buf, start, step, stream);
