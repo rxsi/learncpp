@@ -542,16 +542,21 @@ private:
 int main()
 {
     A a(1);
+    A *aa = new A(1);
     pid_t pid = fork();
     if (pid == 0)
     {
         std::cout << "child process: " << &a << std::endl;
         a.show();
+        std::cout << "child process2: " << aa << ", " << &aa << std::endl;
+        aa->show();
     }
     else
     {
         std::cout << "father process: " << &a << std::endl;
         a.show();
+        std::cout << "father process2: " << aa << ", " << &aa << std::endl;
+        aa->show();
     }
     // FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
     // pid_t pid = fork();
