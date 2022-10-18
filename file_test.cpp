@@ -506,43 +506,43 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 //     }
 // }
 
-void readFunc(std::string flag, FILE *stream)
-{
-    int i = 100;
-    while (i--)
-    {
-        std::cout << "flag: " << flag << ", processID: " << getpid() << ", ";
-        char buf[10];
-        std::cout << "before ftell: " << ftell(stream) << ", ";
-        size_t len = fread(buf, 1, sizeof(buf), stream);
-        std::cout << "len: " << len << ", ";
-        if (len == 0)
-        {
-            std::cout << "empty data" << ", ";
-        }
-        else
-        {
-            std::cout << "data: " << buf << ", "; 
-        }
-        std::cout << "after ftell: " << ftell(stream) << ", fd: " << fileno(stream) << std::endl;
-    }
-}
+// void readFunc(std::string flag, FILE *stream)
+// {
+//     int i = 100;
+//     while (i--)
+//     {
+//         std::cout << "flag: " << flag << ", processID: " << getpid() << ", ";
+//         char buf[10];
+//         std::cout << "before ftell: " << ftell(stream) << ", ";
+//         size_t len = fread(buf, 1, sizeof(buf), stream);
+//         std::cout << "len: " << len << ", ";
+//         if (len == 0)
+//         {
+//             std::cout << "empty data" << ", ";
+//         }
+//         else
+//         {
+//             std::cout << "data: " << buf << ", "; 
+//         }
+//         std::cout << "after ftell: " << ftell(stream) << ", fd: " << fileno(stream) << std::endl;
+//     }
+// }
 
-int main()
-{
-    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-        readFunc("parent", stream);
-    pid_t pid = fork();
-    if (pid == 0)
-    {
-        readFunc("child", stream);
-    }
-    else
-    {
-        int status;
-        wait(&status);
-    }
-}
+// int main()
+// {
+//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+//         readFunc("parent", stream);
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+//         readFunc("child", stream);
+//     }
+//     else
+//     {
+//         int status;
+//         wait(&status);
+//     }
+// }
 
 
 
