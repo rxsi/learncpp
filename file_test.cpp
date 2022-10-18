@@ -714,9 +714,9 @@ void readFunc(FILE *stream)
     int i = 10;
     char buf[10];
     int step = 0;
+    char temp[1];
     while (i--)
     {
-        char temp[1];
         size_t len = fread(temp, 1, sizeof(temp), stream);
         std::cout << len << " , " << temp << " , " << sizeof(temp) << std::endl;
         strcpy(buf+step, temp);
@@ -742,6 +742,7 @@ int main()
     else
     {
         FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         readFunc(stream);
         int status = 0;
         wait(&status);
