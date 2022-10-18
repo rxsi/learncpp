@@ -506,49 +506,43 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 //     }
 // }
 
-// void readFunc(std::string flag, FILE *stream)
-// {
-//     int i = 100;
-//     while (i--)
-//     {
-//         std::cout << "flag: " << flag << ", processID: " << getpid() << ", ";
-//         char buf[10];
-//         std::cout << "before ftell: " << ftell(stream) << ", ";
-//         size_t len = fread(buf, 1, sizeof(buf), stream);
-//         std::cout << "len: " << len << ", ";
-//         if (len == 0)
-//         {
-//             std::cout << "empty data" << ", ";
-//         }
-//         else
-//         {
-//             std::cout << "data: " << buf << ", "; 
-//         }
-//         std::cout << "after ftell: " << ftell(stream) << ", fd: " << fileno(stream) << std::endl;
-//     }
-// }
+void readFunc(std::string flag, FILE *stream)
+{
+    int i = 100;
+    while (i--)
+    {
+        std::cout << "flag: " << flag << ", processID: " << getpid() << ", ";
+        char buf[10];
+        std::cout << "before ftell: " << ftell(stream) << ", ";
+        size_t len = fread(buf, 1, sizeof(buf), stream);
+        std::cout << "len: " << len << ", ";
+        if (len == 0)
+        {
+            std::cout << "empty data" << ", ";
+        }
+        else
+        {
+            std::cout << "data: " << buf << ", "; 
+        }
+        std::cout << "after ftell: " << ftell(stream) << ", fd: " << fileno(stream) << std::endl;
+    }
+}
 
-// int main()
-// {
-//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-//     pid_t pid = fork();
-//     if (pid == 0)
-//     {
-//         std::cout << "child: " << std::endl;
-//         std::cout << &stream << std::endl;
-//         std::cout << stream << std::endl;
-//         readFunc("child", stream);
-//     }
-//     else
-//     {
-//         std::cout << "parent: " << std::endl;
-//         std::cout << &stream << std::endl;
-//         std::cout << stream << std::endl;
-//         readFunc("parent", stream);
-//         int status;
-//         wait(&status);
-//     }
-// }
+int main()
+{
+    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+        readFunc("parent", stream);
+    pid_t pid = fork();
+    if (pid == 0)
+    {
+        readFunc("child", stream);
+    }
+    else
+    {
+        int status;
+        wait(&status);
+    }
+}
 
 
 
@@ -758,43 +752,43 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 
 // 父子进程共享file结构
 // 父进程先调用readFunc，后再由子进程继续调用readFunc，此时他们输出的ftell是连续的，因此证明了父子进程是共享file结构的。
-void readFunc(FILE *stream)
-{
-    int i = 100;
-    while (i--)
-    {
-        std::cout << "processID: " << getpid() << ", ";
-        char buf[10];
-        std::cout << "before ftell: " << ftell(stream) << ", ";
-        size_t len = fread(buf, 1, sizeof(buf), stream);
-        std::cout << "len: " << len << ", ";
-        if (len == 0)
-        {
-            std::cout << "empty data" << ", ";
-        }
-        else
-        {
-            std::cout << "data: " << buf << ", "; 
-        }
-        std::cout << "after ftell: " << ftell(stream) << std::endl;
-    }
-}
+// void readFunc(FILE *stream)
+// {
+//     int i = 100;
+//     while (i--)
+//     {
+//         std::cout << "processID: " << getpid() << ", ";
+//         char buf[10];
+//         std::cout << "before ftell: " << ftell(stream) << ", ";
+//         size_t len = fread(buf, 1, sizeof(buf), stream);
+//         std::cout << "len: " << len << ", ";
+//         if (len == 0)
+//         {
+//             std::cout << "empty data" << ", ";
+//         }
+//         else
+//         {
+//             std::cout << "data: " << buf << ", "; 
+//         }
+//         std::cout << "after ftell: " << ftell(stream) << std::endl;
+//     }
+// }
 
-int main()
-{
-    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-    readFunc(stream);
-    pid_t pid = fork();
-    if (pid == 0) // 子进程
-    {
-        readFunc(stream);
-    }
-    else
-    {
-        int status = 0;
-        wait(&status); // 等待子进程退出
-    }
-}
+// int main()
+// {
+//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+//     readFunc(stream);
+//     pid_t pid = fork();
+//     if (pid == 0) // 子进程
+//     {
+//         readFunc(stream);
+//     }
+//     else
+//     {
+//         int status = 0;
+//         wait(&status); // 等待子进程退出
+//     }
+// }
 
 /*
 测试flock&fcntl&lockf
