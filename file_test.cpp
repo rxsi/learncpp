@@ -784,13 +784,13 @@ int main()
 {
     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
     pid_t pid = fork();
+    readFunc(stream);
     if (pid == 0) // 子进程
     {
         readFunc(stream);
     }
     else
     {
-        readFunc(stream);
         int status = 0;
         wait(&status); // 等待子进程退出
     }
