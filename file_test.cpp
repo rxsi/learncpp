@@ -718,7 +718,7 @@ void readFunc(FILE *stream)
     {
         char temp[1];
         size_t len = fread(temp, 1, sizeof(temp), stream);
-        std::cout << len << " , " << temp << std::endl;
+        std::cout << len << " , " << temp << " , " << sizeof(temp) << std::endl;
         memcpy(buf+step, temp, sizeof(temp));
         step += 1;
         std::this_thread::sleep_for(std::chrono::seconds(1));
