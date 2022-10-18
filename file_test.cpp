@@ -783,8 +783,8 @@ void readFunc(FILE *stream)
 int main()
 {
     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-    pid_t pid = fork();
     readFunc(stream);
+    pid_t pid = fork();
     if (pid == 0) // 子进程
     {
         readFunc(stream);
