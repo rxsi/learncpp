@@ -505,12 +505,12 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 //     }
 // }
 
-void readFunc(FILE *stream)
+void readFunc(string flag, FILE *stream)
 {
     int i = 100;
     while (i--)
     {
-        std::cout << "processID: " << getpid() << ", ";
+        std::cout << "flag: " << flag << ", processID: " << getpid() << ", ";
         char buf[10];
         std::cout << "before ftell: " << ftell(stream) << ", ";
         size_t len = fread(buf, 1, sizeof(buf), stream);
@@ -536,14 +536,14 @@ int main()
         std::cout << "child: " << std::endl;
         std::cout << &stream << std::endl;
         std::cout << stream << std::endl;
-        readFunc(stream);
+        readFunc("child", stream);
     }
     else
     {
         std::cout << "parent: " << std::endl;
         std::cout << &stream << std::endl;
         std::cout << stream << std::endl;
-        // readFunc(stream);
+        readFunc("parent", stream);
         int status;
         wait(&status);
     }
