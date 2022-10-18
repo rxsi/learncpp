@@ -541,7 +541,7 @@ private:
 
 int main()
 {
-    A a = new A(1);
+    A a(1);
     pid_t pid = fork();
     if (pid == 0)
     {
