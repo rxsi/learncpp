@@ -783,7 +783,6 @@ void readFunc(FILE *stream)
 int main()
 {
     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-    readFunc(stream);
     pid_t pid = fork();
     if (pid == 0) // 子进程
     {
@@ -791,6 +790,7 @@ int main()
     }
     else
     {
+        readFunc(stream);
         int status = 0;
         wait(&status); // 等待子进程退出
     }
