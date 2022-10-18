@@ -702,14 +702,65 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 */
 
 // 未加锁，那么会出现读取到别人写一半的内容
-void writeFunc(FILE *stream, char (*buf)[11]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// void writeFunc(FILE *stream, char (*buf)[11]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//     std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << ", write success" << std::endl;
+// }
+
+// // 假设当前读取缓存区不足以一次性读取所有的数据，因此分了两次进行读取
+// void readFunc(FILE *stream)
+// {
+//     int i = 10;
+//     char buf[10];
+//     int step = 0;
+//     while (i--)
+//     {
+//         char temp[1] = {0};
+//         size_t len = fread(temp, 1, sizeof(temp), stream);
+//         std::cout << len << " , " << temp << " , " << sizeof(temp) << std::endl;
+//         strcpy(buf+step, temp);
+//         step += 1;
+//         std::this_thread::sleep_for(std::chrono::seconds(1));
+//     }
+//     std::cout << buf << std::endl;
+// }
+
+// int main()
+// {
+//     pid_t pid = fork();
+//     if (pid == 0) // 子进程，先写入aaaaaaaaa，然后再写入bbbbbbbbb
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+//         char buf1[] = "aaaaaaaaaa";
+//         writeFunc(stream, &buf1); // 先写入了aaaaaaaaa
+//         fseek(stream, 0, SEEK_SET); // 把文件偏移量设置回文件开头
+//         char temp[10];
+//         size_t len = fread(temp, 1, sizeof(temp), stream);
+//         std::cout << temp << std::endl;
+//         std::this_thread::sleep_for(std::chrono::seconds(5));
+//         fseek(stream, 0, SEEK_SET); // 把文件偏移量设置回文件开头
+//         char buf2[] = "bbbbbbbbbb";
+//         writeFunc(stream, &buf2); // 再从头写入bbbbbbbbb
+//     }
+//     else
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+//         std::this_thread::sleep_for(std::chrono::seconds(1));
+//         readFunc(stream);
+//         int status = 0;
+//         wait(&status);
+//     }
+// }
+
+
+void writeFunc(int fd, char (*buf)[11]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
-    ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-    std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << ", write success" << std::endl;
+    ssize_t len = write(fd, *buf, sizeof(*buf));
 }
 
 // 假设当前读取缓存区不足以一次性读取所有的数据，因此分了两次进行读取
-void readFunc(FILE *stream)
+void readFunc(int fd)
 {
     int i = 10;
     char buf[10];
@@ -717,7 +768,7 @@ void readFunc(FILE *stream)
     while (i--)
     {
         char temp[1] = {0};
-        size_t len = fread(temp, 1, sizeof(temp), stream);
+        size_t len = read(fd, temp, sizeof(temp));
         std::cout << len << " , " << temp << " , " << sizeof(temp) << std::endl;
         strcpy(buf+step, temp);
         step += 1;
@@ -731,27 +782,23 @@ int main()
     pid_t pid = fork();
     if (pid == 0) // 子进程，先写入aaaaaaaaa，然后再写入bbbbbbbbb
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+        int fd = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
         char buf1[] = "aaaaaaaaaa";
-        writeFunc(stream, &buf1); // 先写入了aaaaaaaaa
-        fseek(stream, 0, SEEK_SET); // 把文件偏移量设置回文件开头
-        char temp[10];
-        size_t len = fread(temp, 1, sizeof(temp), stream);
-        std::cout << temp << std::endl;
+        writeFunc(fd, &buf1); // 先写入了aaaaaaaaa
         std::this_thread::sleep_for(std::chrono::seconds(5));
-        fseek(stream, 0, SEEK_SET); // 把文件偏移量设置回文件开头
+        lseek(fd, 0, SEEK_SET);
         char buf2[] = "bbbbbbbbbb";
-        writeFunc(stream, &buf2); // 再从头写入bbbbbbbbb
+        writeFunc(fd, &buf2); // 再从头写入bbbbbbbbb
     }
     else
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        readFunc(stream);
+        int fd = open("/home/rxsi/hello_world.txt", O_RDONLY);
+        readFunc(fd);
         int status = 0;
         wait(&status);
     }
 }
+
 
 // 父子进程共享file结构
 // 父进程先调用readFunc，后再由子进程继续调用readFunc，此时他们输出的ftell是连续的，因此证明了父子进程是共享file结构的。
