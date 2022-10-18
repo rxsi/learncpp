@@ -702,7 +702,7 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 */
 
 // 未加锁，那么会出现读取到别人写一半的内容
-void writeFunc(FILE *stream, char (*buf)[145]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+void writeFunc(FILE *stream, char (*buf)[11]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
     std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << ", write success" << std::endl;
@@ -711,15 +711,16 @@ void writeFunc(FILE *stream, char (*buf)[145]) // char buf[]、char *buf、char 
 // 假设当前读取缓存区不足以一次性读取所有的数据，因此分了两次进行读取
 void readFunc(FILE *stream)
 {
-    int i = 29;
-    char buf[145];
+    int i = 10;
+    char buf[10];
     int step = 0;
     while (i--)
     {
-        char temp[5];
+        char temp[1];
         size_t len = fread(temp, 1, sizeof(temp), stream);
+        std::cout << temp << std::endl;
         memcpy(buf+step, temp, sizeof(temp));
-        step += 5;
+        step += 1;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     std::cout << buf << std::endl;
@@ -731,11 +732,11 @@ int main()
     if (pid == 0) // 子进程，先写入aaaaaaaaa，然后再写入bbbbbbbbb
     {
         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
-        char buf1[] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        char buf1[] = "aaaaaaaaaa";
         writeFunc(stream, &buf1); // 先写入了aaaaaaaaa
         std::this_thread::sleep_for(std::chrono::seconds(5));
         fseek(stream, 0, SEEK_SET); // 把文件偏移量设置回文件开头
-        char buf2[] = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+        char buf2[] = "bbbbbbbbbb";
         writeFunc(stream, &buf2); // 再从头写入bbbbbbbbb
     }
     else
