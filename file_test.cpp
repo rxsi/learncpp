@@ -714,9 +714,9 @@ void readFunc(FILE *stream)
     int i = 10;
     char buf[10];
     int step = 0;
-    char temp[1];
     while (i--)
     {
+        char temp[1] = {0};
         size_t len = fread(temp, 1, sizeof(temp), stream);
         std::cout << len << " , " << temp << " , " << sizeof(temp) << std::endl;
         strcpy(buf+step, temp);
