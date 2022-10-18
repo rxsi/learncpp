@@ -396,7 +396,7 @@ void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]
 {
     int i = 200;
     struct flock lock;
-    memset (&lock, 0, sizeof(lock));
+    memset(&lock, 0, sizeof(lock));
     lock.l_whence = SEEK_SET;
     lock.l_start = 0;
     lock.l_len = 0;
@@ -408,9 +408,9 @@ void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]
         lseek(fd, 0, SEEK_END);// 移动到文件尾
         std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << lseek(fd, 0, SEEK_CUR) << std::endl;
         ssize_t len = write(fd, buf, sizeof(*buf));
-        lock.l_type = F_UNLCK;
-        fcntl(fd, F_SETLK, &lock);
     }
+    lock.l_type = F_UNLCK;
+    fcntl(fd, F_SETLK, &lock);
 }
 
 
