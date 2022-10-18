@@ -704,12 +704,8 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 // 未加锁，那么会出现读取到别人写一半的内容
 void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
-    // int i = 200;
-    // while (i--)
-    // {
     ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
     std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << ", write success" << std::endl;
-    // }
 }
 
 // 假设当前读取缓存区不足以一次性读取所有的数据，因此分了两次进行读取
@@ -721,15 +717,15 @@ void readFunc(FILE *stream)
     while (i--)
     {
         size_t len = fread(buf, start, 5, stream);
-        std::cout << "len: " << len << ", ";
-        if (len == 0)
-        {
-            std::cout << "empty data" << ", ";
-        }
-        else
-        {
-            std::cout << "data: " << buf << ", "; 
-        }
+        // std::cout << "len: " << len << ", ";
+        // if (len == 0)
+        // {
+        //     std::cout << "empty data" << ", ";
+        // }
+        // else
+        // {
+        //     std::cout << "data: " << buf << ", "; 
+        // }
         start += 5;
     }
     std::cout << buf << std::endl;
@@ -751,6 +747,8 @@ int main()
     {
         FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
         readFunc(stream);
+        int status = 0;
+        wait(&status);
     }
 }
 
