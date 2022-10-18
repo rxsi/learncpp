@@ -762,14 +762,13 @@ void writeFunc(int fd, char (*buf)[11]) // char buf[]、char *buf、char buf[11]
 // 假设当前读取缓存区不足以一次性读取所有的数据，因此分了两次进行读取
 void readFunc(int fd)
 {
-    int i = 10;
-    char buf[10];
+    int i = 5;
+    char buf[5];
     int step = 0;
+    char temp[1];
     while (i--)
     {
-        char temp[1] = {0};
         size_t len = read(fd, temp, sizeof(temp));
-        std::cout << len << " , " << temp << " , " << sizeof(temp) << std::endl;
         strcpy(buf+step, temp);
         step += 1;
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -783,11 +782,11 @@ int main()
     if (pid == 0) // 子进程，先写入aaaaaaaaa，然后再写入bbbbbbbbb
     {
         int fd = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
-        char buf1[] = "aaaaaaaaaa";
+        char buf1[] = "aaaaa";
         writeFunc(fd, &buf1); // 先写入了aaaaaaaaa
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         lseek(fd, 0, SEEK_SET);
-        char buf2[] = "bbbbbbbbbb";
+        char buf2[] = "bbbbb";
         writeFunc(fd, &buf2); // 再从头写入bbbbbbbbb
     }
     else
