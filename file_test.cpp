@@ -283,38 +283,39 @@ LOCK_UN：移除本进程添加的共享/互斥锁
  /*
 1. 多线程读
 */
-// void readFunc(FILE *stream)
-// {
-//     int i = 6;
-//     char buf[11];
-//     while (i--)
-//     {
-//         std::cout << "threadID: " << std::this_thread::get_id() << ", ";
-//         std::cout << "before fread ftell: " << ftell(stream) << ", ";
-//         /*
-//         这里的fread会顺序的交替输出，证明了fread具有原子性，不会在读取的中间过程被线程切换
-//         */ 
-//         ssize_t len = fread(buf, 1, sizeof(buf), stream);
+void readFunc(FILE *stream)
+{
+    int i = 6;
+    char buf[11];
+    while (i--)
+    {
+        std::cout << "threadID: " << std::this_thread::get_id() << ", ";
+        std::cout << "before fread ftell: " << ftell(stream) << ", ";
+        /*
+        这里的fread会顺序的交替输出，证明了fread具有原子性，不会在读取的中间过程被线程切换
+        */ 
+        ssize_t len = fread(buf, 1, sizeof(buf), stream);
         
-//         if (len == 0)
-//         {
-//             std::cout << "read emtpty data" << std::endl;
-//             break;
-//         }
-//         std::cout << "data_len: " << len << ", data: " << buf << ", ";
-//         std::cout << "after fread ftell: " << ftell(stream) << std::endl;
-//     }
-// }
+        if (len == 0)
+        {
+            std::cout << "read emtpty data" << std::endl;
+            break;
+        }
+        std::cout << "data_len: " << len << ", data: " << buf << ", ";
+        int fd = fileno(stream);
+        std::cout << "after fread ftell: " << ftell(stream) << ", stream->_file: " << stream->_file << ", fd: " << fd << std::endl;
+    }
+}
 
-// int main()
-// {
-//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-//     std::thread t1(readFunc, stream);
-//     std::thread t2(readFunc, stream);
-//     t1.join();
-//     t2.join();
-//     fclose(stream);
-// }
+int main()
+{
+    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+    std::thread t1(readFunc, stream);
+    std::thread t2(readFunc, stream);
+    t1.join();
+    t2.join();
+    fclose(stream);
+}
 
 /*
 2. 多线程write
@@ -362,34 +363,34 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 // }
 
 // 使用非缓存版本则正常
-void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
-{
-    int i = 200;
-    while (i--)
-    {
-        int ret = flock(fd, LOCK_EX); // 阻塞加锁
-        if (ret != 0) std::cout << "lock fail" << std::endl;
-        lseek(fd, 0, SEEK_END);// 移动到文件尾
-        std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << lseek(fd, 0, SEEK_CUR) << std::endl;
-        ssize_t len = write(fd, buf, sizeof(*buf));
-        flock(fd, LOCK_UN);
-    }
-}
+// void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     while (i--)
+//     {
+//         int ret = flock(fd, LOCK_EX); // 阻塞加锁
+//         if (ret != 0) std::cout << "lock fail" << std::endl;
+//         lseek(fd, 0, SEEK_END);// 移动到文件尾
+//         std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << lseek(fd, 0, SEEK_CUR) << std::endl;
+//         ssize_t len = write(fd, buf, sizeof(*buf));
+//         flock(fd, LOCK_UN);
+//     }
+// }
 
 
-int main()
-{
-    int fd1 = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
-    char buf1[] = "aaaaaaaaa";
-    std::thread t1(writeFunc, fd1, &buf1);
-    int fd2 = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
-    char buf2[] = "bbbbbbbbb";
-    std::thread t2(writeFunc, fd2, &buf2);
-    t1.join();
-    t2.join();
-    close(fd1);
-    close(fd2);
-}
+// int main()
+// {
+//     int fd1 = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
+//     char buf1[] = "aaaaaaaaa";
+//     std::thread t1(writeFunc, fd1, &buf1);
+//     int fd2 = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
+//     char buf2[] = "bbbbbbbbb";
+//     std::thread t2(writeFunc, fd2, &buf2);
+//     t1.join();
+//     t2.join();
+//     close(fd1);
+//     close(fd2);
+// }
 
 // 使用非缓存版本则正常，使用fcntl加锁
 // void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
