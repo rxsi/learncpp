@@ -702,7 +702,7 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 */
 
 // 未加锁，那么会出现读取到别人写一半的内容
-void writeFunc(FILE *stream, char (*buf)[6670]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     // int i = 200;
     // while (i--)
