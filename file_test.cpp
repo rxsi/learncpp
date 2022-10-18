@@ -505,80 +505,49 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 //     }
 // }
 
-// void readFunc(FILE *stream)
-// {
-//     int i = 100;
-//     while (i--)
-//     {
-//         std::cout << "processID: " << getpid() << ", ";
-//         char buf[10];
-//         std::cout << "before ftell: " << ftell(stream) << ", ";
-//         size_t len = fread(buf, 1, sizeof(buf), stream);
-//         std::cout << "len: " << len << ", ";
-//         if (len == 0)
-//         {
-//             std::cout << "empty data" << ", ";
-//         }
-//         else
-//         {
-//             std::cout << "data: " << buf << ", "; 
-//         }
-//         std::cout << "after ftell: " << ftell(stream) << ", fd: " << fileno(stream) << std::endl;
-//     }
-// }
-
-class A
+void readFunc(FILE *stream)
 {
-public:
-    A(int n): num(n){}
-    void show()
+    int i = 100;
+    while (i--)
     {
-        std::cout << "num = " << num << std::endl;
+        std::cout << "processID: " << getpid() << ", ";
+        char buf[10];
+        std::cout << "before ftell: " << ftell(stream) << ", ";
+        size_t len = fread(buf, 1, sizeof(buf), stream);
+        std::cout << "len: " << len << ", ";
+        if (len == 0)
+        {
+            std::cout << "empty data" << ", ";
+        }
+        else
+        {
+            std::cout << "data: " << buf << ", "; 
+        }
+        std::cout << "after ftell: " << ftell(stream) << ", fd: " << fileno(stream) << std::endl;
     }
-private:
-    int num;
-};
+}
 
 int main()
 {
-    A a(1);
-    A *aa = new A(1);
+    FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
     pid_t pid = fork();
     if (pid == 0)
     {
-        std::cout << "child process: " << &a << std::endl;
-        a.show();
-        std::cout << "child process2: " << aa << ", " << &aa << std::endl;
-        aa->show();
+        std::cout << "child: " << std::endl;
+        std::cout << &stream << std::endl;
+        std::cout << stream << std::endl;
+        readFunc(stream);
     }
     else
     {
-        std::cout << "father process: " << &a << std::endl;
-        a.show();
-        std::cout << "father process2: " << aa << ", " << &aa << std::endl;
-        aa->show();
+        std::cout << "parent: " << std::endl;
+        std::cout << &stream << std::endl;
+        std::cout << stream << std::endl;
+        // readFunc(stream);
+        int status;
+        wait(&status);
     }
-    // FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-    // pid_t pid = fork();
-    // if (pid == 0)
-    // {
-    //     std::cout << "child: " << std::endl;
-    //     std::cout << &stream << std::endl;
-    //     std::cout << stream << std::endl;
-    //     readFunc(stream);
-    // }
-    // else
-    // {
-    //     std::cout << "parent: " << std::endl;
-    //     std::cout << &stream << std::endl;
-    //     std::cout << stream << std::endl;
-    //     readFunc(stream);
-    //     int status;
-    //     wait(&status);
-    // }
 }
-
-
 
 
 
