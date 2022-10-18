@@ -320,46 +320,46 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 2. 多线程write
 */
 
-void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
-{
-    int i = 200;
-    int fd = fileno(stream);
-    // struct flock lock;
-    // memset (&lock, 0, sizeof(lock));
-    // lock.l_whence = SEEK_SET;
-    // lock.l_start = 0;
-    // lock.l_len = 0;
-    while (i--)
-    {
-        int ret = flock(fd, LOCK_EX); // 阻塞加锁
-        if (ret != 0) std::cout << "lock fail" << std::endl;
-        // lock.l_type = F_WRLCK;
+// void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     int fd = fileno(stream);
+//     // struct flock lock;
+//     // memset (&lock, 0, sizeof(lock));
+//     // lock.l_whence = SEEK_SET;
+//     // lock.l_start = 0;
+//     // lock.l_len = 0;
+//     while (i--)
+//     {
+//         int ret = flock(fd, LOCK_EX); // 阻塞加锁
+//         if (ret != 0) std::cout << "lock fail" << std::endl;
+//         // lock.l_type = F_WRLCK;
 
-        // fcntl(fd, F_SETLK, &lock);
-        fseek(stream, 0, SEEK_END); // 移动到文件尾
-        std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << ftell(stream) << std::endl;
-        ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-        fsync(fd);
-        flock(fd, LOCK_UN);
-        // lock.l_type = F_UNLCK;
-        // fcntl(fd, F_SETLK, &lock);
-    }
-}
+//         // fcntl(fd, F_SETLK, &lock);
+//         fseek(stream, 0, SEEK_END); // 移动到文件尾
+//         std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << ftell(stream) << std::endl;
+//         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//         // fsync(fd); 使用fsync也没有用，依然无法同步
+//         flock(fd, LOCK_UN);
+//         // lock.l_type = F_UNLCK;
+//         // fcntl(fd, F_SETLK, &lock);
+//     }
+// }
 
 
-int main()
-{
-    FILE *stream1 = fopen("/home/rxsi/hello_world.txt", "w+");
-    char buf1[] = "aaaaaaaaa";
-    std::thread t1(writeFunc, stream1, &buf1);
-    FILE *stream2 = fopen("/home/rxsi/hello_world.txt", "w+");
-    char buf2[] = "bbbbbbbbb";
-    std::thread t2(writeFunc, stream2, &buf2);
-    t1.join();
-    t2.join();
-    fclose(stream1);
-    fclose(stream2);
-}
+// int main()
+// {
+//     FILE *stream1 = fopen("/home/rxsi/hello_world.txt", "w+");
+//     char buf1[] = "aaaaaaaaa";
+//     std::thread t1(writeFunc, stream1, &buf1);
+//     FILE *stream2 = fopen("/home/rxsi/hello_world.txt", "w+");
+//     char buf2[] = "bbbbbbbbb";
+//     std::thread t2(writeFunc, stream2, &buf2);
+//     t1.join();
+//     t2.join();
+//     fclose(stream1);
+//     fclose(stream2);
+// }
 
 // 使用非缓存版本则正常
 // void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
@@ -390,6 +390,43 @@ int main()
 //     close(fd1);
 //     close(fd2);
 // }
+
+// 使用非缓存版本则正常，使用fcntl加锁
+void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+{
+    int i = 200;
+    struct flock lock;
+    memset (&lock, 0, sizeof(lock));
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
+    while (i--)
+    {
+        lock.l_type = F_WRLCK;
+        int ret = fcntl(fd, F_SETLK, &lock);
+        if (ret != 0) std::cout << "lock fail" << std::endl;
+        lseek(fd, 0, SEEK_END);// 移动到文件尾
+        std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << lseek(fd, 0, SEEK_CUR) << std::endl;
+        ssize_t len = write(fd, buf, sizeof(*buf));
+        lock.l_type = F_UNLCK;
+        fcntl(fd, F_SETLK, &lock);
+    }
+}
+
+
+int main()
+{
+    int fd1 = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
+    char buf1[] = "aaaaaaaaa";
+    std::thread t1(writeFunc, fd1, &buf1);
+    int fd2 = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
+    char buf2[] = "bbbbbbbbb";
+    std::thread t2(writeFunc, fd2, &buf2);
+    t1.join();
+    t2.join();
+    close(fd1);
+    close(fd2);
+}
 
 /*
 3. 多线程读+写
