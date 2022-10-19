@@ -754,7 +754,7 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 // }
 
 
-void writeFunc(int fd, char (*buf)[5]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+void writeFunc(int fd, char (*buf)[6]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     ssize_t len = write(fd, *buf, sizeof(*buf));
 }
@@ -762,32 +762,21 @@ void writeFunc(int fd, char (*buf)[5]) // char buf[]、char *buf、char buf[11]�
 // 假设当前读取缓存区不足以一次性读取所有的数据，因此分了两次进行读取
 void readFunc(int fd)
 {
-    int i = 5;
-    char buf[5];
+    int i = 3;
+    char buf[6];
     int step = 0;
     char temp[2];
-    size_t len = read(fd, temp, sizeof(temp));
-    std::string s(temp);
-    std::cout << "len: " << len << ", temp: " << temp << ", offset: " << lseek(fd, 0, SEEK_CUR) << std::endl;
-    printf("data: %s", temp);
-    // char temp2[4];
-    // size_t len2 = read(fd, temp2, sizeof(temp2));
-    // std::cout << "len2: " << len2 << ", temp: " << temp2 << ", offset: " << lseek(fd, 0, SEEK_CUR) << std::endl;
-    // char temp3[4];
-    // size_t len3 = read(fd, temp3, sizeof(temp3));
-    // std::cout << "len3: " << len3 << ", temp: " << temp3 << ", offset: " << lseek(fd, 0, SEEK_CUR) << std::endl;
-    // while (i--)
-    // {
-    //     std::this_thread::sleep_for(std::chrono::seconds(1));
-    //     size_t len = read(fd, temp, sizeof(temp));
-    //     std::string new_temp(temp);
-    //     std::cout << new_temp << std::endl;
-    //     strcpy(buf+step, temp);
-    //     std::cout << "buf: " << buf << ", size: " << sizeof(buf) << std::endl;
-    //     step += 1;
-    // }
-    // std::string s(buf);
-    // std::cout << s << std::endl;
+    while (i--)
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        size_t len = read(fd, temp, sizeof(temp));
+        strcpy(buf+step, temp);
+        step += 1;
+    }
+    std::cout << "size buf" << sizeof(buf) << std::endl;
+    print("buf: %s", buf);
+    std::string s(buf);
+    std::cout << s << std::endl;
 }
 
 int main()
@@ -798,7 +787,7 @@ int main()
         int fd = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
         for (int i = 0; i < 3; ++i)
         {
-            char buf1[] = "aaaa";
+            char buf1[] = "aaaaa";
             writeFunc(fd, &buf1); // 先写入了aaaaaaaaa
         }
         // std::this_thread::sleep_for(std::chrono::seconds(3));
