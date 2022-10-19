@@ -771,9 +771,10 @@ void readFunc(int fd)
     {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         size_t len = read(fd, temp, sizeof(temp));
+        // for (int i = step; i < 2; ++i) buf[i] = temp[i%2];
         strcpy(buf+step, temp);
         std::cout << "change buf: " << buf << std::endl;
-        step += 1;
+        step += 2;
     }
     std::cout << "size buf" << sizeof(buf) << std::endl;
     std::string s(buf);
