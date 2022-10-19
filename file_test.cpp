@@ -767,11 +767,11 @@ void readFunc(int fd)
     int step = 0;
     char temp[1];
     size_t len = read(fd, temp, sizeof(temp));
-    std::cout << "len: " << len << ", temp: " << temp << std::endl;
+    std::cout << "len: " << len << ", temp: " << temp << ", offset: " << lseek(fd, 0, SEEK_CUR) << std::endl;
     size_t len2 = read(fd, temp, sizeof(temp));
-    std::cout << "len2: " << len2 << ", temp: " << temp << std::endl;
+    std::cout << "len2: " << len2 << ", temp: " << temp << ", offset: " << lseek(fd, 0, SEEK_CUR) << std::endl;
     size_t len3 = read(fd, temp, sizeof(temp));
-    std::cout << "len3: " << len3 << ", temp: " << temp << std::endl;
+    std::cout << "len3: " << len3 << ", temp: " << temp << ", offset: " << lseek(fd, 0, SEEK_CUR) << std::endl;
     // while (i--)
     // {
     //     std::this_thread::sleep_for(std::chrono::seconds(1));
