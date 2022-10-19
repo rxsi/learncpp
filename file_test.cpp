@@ -788,9 +788,9 @@ int main()
         char buf1[] = "aaaaa";
         writeFunc(fd, &buf1); // 先写入了aaaaaaaaa
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        lseek(fd, 0, SEEK_SET);
-        char buf2[] = "bbbbb";
-        writeFunc(fd, &buf2); // 再从头写入bbbbbbbbb
+        // lseek(fd, 0, SEEK_SET);
+        // char buf2[] = "bbbbb";
+        // writeFunc(fd, &buf2); // 再从头写入bbbbbbbbb
     }
     else
     {
