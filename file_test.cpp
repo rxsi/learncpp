@@ -767,7 +767,9 @@ void readFunc(int fd)
     int step = 0;
     char temp[256];
     size_t len = read(fd, temp, sizeof(temp));
+    std::string s(temp);
     std::cout << "len: " << len << ", temp: " << temp << ", offset: " << lseek(fd, 0, SEEK_CUR) << std::endl;
+    printf("data: %s", temp);
     // char temp2[4];
     // size_t len2 = read(fd, temp2, sizeof(temp2));
     // std::cout << "len2: " << len2 << ", temp: " << temp2 << ", offset: " << lseek(fd, 0, SEEK_CUR) << std::endl;
