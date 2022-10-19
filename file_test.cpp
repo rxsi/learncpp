@@ -766,18 +766,20 @@ void readFunc(int fd)
     char buf[5];
     int step = 0;
     char temp[1];
-    while (i--)
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        size_t len = read(fd, temp, sizeof(temp));
-        std::string new_temp(temp);
-        std::cout << new_temp << std::endl;
-        strcpy(buf+step, temp);
-        std::cout << "buf: " << buf << ", size: " << sizeof(buf) << std::endl;
-        step += 1;
-    }
-    std::string s(buf);
-    std::cout << s << std::endl;
+    size_t len = read(fd, temp, sizeof(temp));
+    std::cout << "len: " << len << ", temp: " << temp << std::endl;
+    // while (i--)
+    // {
+    //     std::this_thread::sleep_for(std::chrono::seconds(1));
+    //     size_t len = read(fd, temp, sizeof(temp));
+    //     std::string new_temp(temp);
+    //     std::cout << new_temp << std::endl;
+    //     strcpy(buf+step, temp);
+    //     std::cout << "buf: " << buf << ", size: " << sizeof(buf) << std::endl;
+    //     step += 1;
+    // }
+    // std::string s(buf);
+    // std::cout << s << std::endl;
 }
 
 int main()
