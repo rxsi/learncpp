@@ -763,7 +763,7 @@ void writeFunc(int fd, char (*buf)[6]) // char buf[]、char *buf、char buf[11]�
 void readFunc(int fd)
 {
     int i = 3;
-    char buf[6];
+    char buf[5];
     int step = 0;
     char temp[2];
     while (i--)
