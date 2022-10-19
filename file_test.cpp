@@ -796,7 +796,7 @@ int main()
         int fd = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
         for (int i = 0; i < 3; ++i)
         {
-            char buf1[] = "aa aa ";
+            char buf1[] = "aa\naa\n";
             writeFunc(fd, &buf1); // 先写入了aaaaaaaaa
         }
         // std::this_thread::sleep_for(std::chrono::seconds(3));
