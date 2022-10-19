@@ -763,7 +763,7 @@ void writeFunc(int fd, char (*buf)[6]) // char buf[]、char *buf、char buf[11]�
 void readFunc(int fd)
 {
     int i = 3;
-    char buf[5] = {"0"};
+    char buf[6] = "00000";
     std::cout << "init buf: " << buf << std::endl; 
     int step = 0;
     char temp[2];
