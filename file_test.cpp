@@ -785,15 +785,12 @@ int main()
     if (pid == 0) // 子进程，先写入aaaaaaaaa，然后再写入bbbbbbbbb
     {
         int fd = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
-        for (int i = 0; i < 3; ++i)
-        {
-            char buf1[] = "aaaaa";
-            writeFunc(fd, &buf1); // 先写入了aaaaaaaaa
-        }
-        // std::this_thread::sleep_for(std::chrono::seconds(3));
-        // lseek(fd, 0, SEEK_SET);
-        // char buf2[] = "bbbbb";
-        // writeFunc(fd, &buf2); // 再从头写入bbbbbbbbb
+        char buf1[] = "aaaaa";
+        writeFunc(fd, &buf1); // 先写入了aaaaaaaaa
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        lseek(fd, 0, SEEK_SET);
+        char buf2[] = "bbbbb";
+        writeFunc(fd, &buf2); // 再从头写入bbbbbbbbb
     }
     else
     {
