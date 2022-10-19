@@ -782,9 +782,9 @@ void readFunc(int fd)
     lock.l_len = 0;
     while (i--)
     {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         lock.l_type = F_RDLCK; // 这里加读锁就好了，如果有多个进程同时调用，那么可以同时进行读取
         int ret = fcntl(fd, F_SETLKW, &lock);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
         size_t len = read(fd, temp, sizeof(temp));
         strcpy(buf+step, temp);
         step += 2;
