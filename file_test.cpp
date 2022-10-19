@@ -768,6 +768,10 @@ void readFunc(int fd)
     char temp[1];
     size_t len = read(fd, temp, sizeof(temp));
     std::cout << "len: " << len << ", temp: " << temp << std::endl;
+    size_t len = read(fd, temp, sizeof(temp));
+    std::cout << "len: " << len << ", temp: " << temp << std::endl;
+    size_t len = read(fd, temp, sizeof(temp));
+    std::cout << "len: " << len << ", temp: " << temp << std::endl;
     // while (i--)
     // {
     //     std::this_thread::sleep_for(std::chrono::seconds(1));
