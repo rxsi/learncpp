@@ -775,7 +775,8 @@ void readFunc(int fd)
         std::cout << "buf: " << buf << std::endl;
         step += 1;
     }
-    std::cout << buf << std::endl;
+    std::string s(buf);
+    std::cout << s << std::endl;
 }
 
 int main()
