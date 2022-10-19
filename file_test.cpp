@@ -765,14 +765,14 @@ void readFunc(int fd)
     int i = 5;
     char buf[5];
     int step = 0;
-    char temp[1];
+    char temp[6];
     size_t len = read(fd, temp, sizeof(temp));
     std::cout << "len: " << len << ", temp: " << temp << ", offset: " << lseek(fd, 0, SEEK_CUR) << std::endl;
-    char temp2[1];
-    size_t len2 = read(fd, temp2, sizeof(temp));
+    char temp2[6];
+    size_t len2 = read(fd, temp2, sizeof(temp2));
     std::cout << "len2: " << len2 << ", temp: " << temp2 << ", offset: " << lseek(fd, 0, SEEK_CUR) << std::endl;
-    char temp3[1];
-    size_t len3 = read(fd, temp3, sizeof(temp));
+    char temp3[6];
+    size_t len3 = read(fd, temp3, sizeof(temp3));
     std::cout << "len3: " << len3 << ", temp: " << temp3 << ", offset: " << lseek(fd, 0, SEEK_CUR) << std::endl;
     // while (i--)
     // {
