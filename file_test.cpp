@@ -772,6 +772,7 @@ void readFunc(int fd)
         size_t len = read(fd, temp, sizeof(temp));
         std::cout << temp << std::endl;
         strcpy(buf+step, temp);
+        std::cout << "buf: " << buf << std::endl;
         step += 1;
     }
     std::cout << buf << std::endl;
