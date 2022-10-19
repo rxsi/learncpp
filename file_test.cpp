@@ -774,7 +774,7 @@ void readFunc(int fd)
         step += 1;
     }
     std::cout << "size buf" << sizeof(buf) << std::endl;
-    print("buf: %s", buf);
+    printf("buf: %s", buf);
     std::string s(buf);
     std::cout << s << std::endl;
 }
