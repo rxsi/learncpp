@@ -754,7 +754,7 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 // }
 
 
-void writeFunc(int fd, char (*buf)[4]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+void writeFunc(int fd, char (*buf)[7]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
     ssize_t len = write(fd, *buf, sizeof(*buf));
 }
@@ -794,9 +794,9 @@ int main()
     if (pid == 0) // 子进程，先写入aaaaaaaaa，然后再写入bbbbbbbbb
     {
         int fd = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
-        for (int i = 0; i < 6; ++i)
+        for (int i = 0; i < 3; ++i)
         {
-            char buf1[] = "aa\n";
+            char buf1[] = "aa\naa\n";
             writeFunc(fd, &buf1); // 先写入了aaaaaaaaa
         }
         // std::this_thread::sleep_for(std::chrono::seconds(3));
