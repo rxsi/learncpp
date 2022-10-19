@@ -763,7 +763,8 @@ void writeFunc(int fd, char (*buf)[6]) // char buf[]、char *buf、char buf[11]�
 void readFunc(int fd)
 {
     int i = 3;
-    char buf[5];
+    char buf[5] = {"0"};
+    std::cout << "init buf: " << buf << std::endl; 
     int step = 0;
     char temp[2];
     while (i--)
@@ -771,10 +772,10 @@ void readFunc(int fd)
         std::this_thread::sleep_for(std::chrono::seconds(1));
         size_t len = read(fd, temp, sizeof(temp));
         strcpy(buf+step, temp);
+        std::cout << "change buf: " << buf << std::endl;
         step += 1;
     }
     std::cout << "size buf" << sizeof(buf) << std::endl;
-    printf("buf: %s", buf);
     std::string s(buf);
     std::cout << s << std::endl;
 }
