@@ -772,7 +772,7 @@ void readFunc(int fd)
         size_t len = read(fd, temp, sizeof(temp));
         std::cout << temp << std::endl;
         strcpy(buf+step, temp);
-        std::cout << "buf: " << buf << ", size: " << sizeof(buf) << ", buf+step" << buf+step << std::endl;
+        std::cout << "buf: " << buf << ", size: " << sizeof(buf) << ", buf+step: " << &(buf+step) << std::endl;
         step += 1;
     }
     std::string s(buf);
