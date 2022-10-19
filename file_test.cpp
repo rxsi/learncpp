@@ -773,7 +773,7 @@ void readFunc(int fd)
         std::cout << temp << std::endl;
         strcpy(buf+step, temp);
         memset(temp, 0, sizeof(temp));
-        std::cout << "buf: " << buf << std::endl;
+        std::cout << "buf: " << buf << ", size: " << sizeof(buf) << std::endl;
         step += 1;
     }
     std::string s(buf);
