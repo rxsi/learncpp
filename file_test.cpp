@@ -756,7 +756,16 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 
 void writeFunc(int fd, char (*buf)[6]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
+    struct flock lock;
+    memset(&lock, 0, sizeof(lock));
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
+    lock.l_type = F_WRLCK; // 这里加写锁
+    int ret = fcntl(fd, F_SETLKW, &lock);
     ssize_t len = write(fd, *buf, sizeof(*buf));
+    lock.l_type = F_UNLCK;
+    fcntl(fd, F_SETLK, &lock); // 解锁
 }
 
 // 假设当前读取缓存区不足以一次性读取所有的数据，因此分了两次进行读取
@@ -766,13 +775,22 @@ void readFunc(int fd)
     char buf[6];
     int step = 0;
     char temp[2];
+    struct flock lock;
+    memset(&lock, 0, sizeof(lock));
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
     while (i--)
     {
+        lock.l_type = F_RDLCK; // 这里加读锁就好了，如果有多个进程同时调用，那么可以同时进行读取
+        int ret = fcntl(fd, F_SETLKW, &lock);
         std::this_thread::sleep_for(std::chrono::seconds(1));
         size_t len = read(fd, temp, sizeof(temp));
         strcpy(buf+step, temp);
         step += 2;
     }
+    lock.l_type = F_UNLCK;
+    fcntl(fd, F_SETLK, &lock); // 读取完毕，解锁
     std::cout << buf << std::endl;
 }
 
