@@ -28,14 +28,52 @@
 // }
 
 
-// #include <stdio.h>
-// #include <thread>
-// #include <iostream>
+#include <stdio.h>
+#include <thread>
+#include <iostream>
+#include <vector>
+#include <ctime>
 
-// void threadproc1()
-// {
-//     std::cout << "C++ std::thread 1" << std::endl;
-// }
+void threadproc1()
+{
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    // std::cout << "C++ std::thread 1" << std::endl;
+}
+
+void start_fun()
+{
+    for (int i = 0; i < 5; ++i)
+    {
+        std::thread t(threadproc1);
+        t.join();
+    }
+}
+
+void start_fun2()
+{
+    std::vector<std::thread> threads;
+    for (int i = 0; i < 5; ++i)
+    {
+        threads.emplace_back(std::thread(threadproc1));
+    }
+    for (int i = 0; i < 5; ++i)
+    {
+        threads[i].join();
+    }
+}
+
+int main()
+{
+    time_t now = time(0);
+    std::cout << "start_time: " << now << std::endl;
+    start_fun();
+    now = time(0);
+    std::cout << "end_time: " << now << std::endl;
+    std::cout << "start_time: " << now << std::endl;
+    start_fun2();
+    now = time(0);
+    std::cout << "end_time: " << now << std::endl;
+}
 
 // void threadproc2(int a, int b)
 // {
@@ -360,83 +398,83 @@ int pthread_mutex_unlock(pthread_mutex_t* mutex);
 执行成功会返回0，
 */
 
-#include <pthread.h>
-#include <stdio.h>
-#include <errno.h>
-#include <iostream>
-#include <unistd.h>
+// #include <pthread.h>
+// #include <stdio.h>
+// #include <errno.h>
+// #include <iostream>
+// #include <unistd.h>
 
-pthread_mutex_t mymutex;
-pthread_mutex_t mymutex2;
+// pthread_mutex_t mymutex;
+// pthread_mutex_t mymutex2;
 
-void* thread_fun(void* args)
-{
-    pthread_t* threadID = (pthread_t*) args;
-    std::cout << threadID << ": lock in mutext" << std::endl;
-    pthread_mutex_lock(&mymutex);
-    std::cout << threadID << ": thread running" << std::endl;
-    sleep(3);
-    std::cout << threadID << ": try to lock mymutext2" << std::endl;
-    pthread_mutex_lock(&mymutex2);
+// void* thread_fun(void* args)
+// {
+//     pthread_t* threadID = (pthread_t*) args;
+//     std::cout << threadID << ": lock in mutext" << std::endl;
+//     pthread_mutex_lock(&mymutex);
+//     std::cout << threadID << ": thread running" << std::endl;
+//     sleep(3);
+//     std::cout << threadID << ": try to lock mymutext2" << std::endl;
+//     pthread_mutex_lock(&mymutex2);
     
-    // 尝试销毁被锁定的mutex对象
-    int  ret = pthread_mutex_destroy(&mymutex);
-    if (ret != 0)
-    {
-        if (ret == EBUSY)
-        {
-            std::cout << "EBUSY" << std::endl;
-            std::cout << "Failed to destory mutex." << std::endl;
-        }
-    }
-    pthread_mutex_unlock(&mymutex);
-    return NULL;
-}
+//     // 尝试销毁被锁定的mutex对象
+//     int  ret = pthread_mutex_destroy(&mymutex);
+//     if (ret != 0)
+//     {
+//         if (ret == EBUSY)
+//         {
+//             std::cout << "EBUSY" << std::endl;
+//             std::cout << "Failed to destory mutex." << std::endl;
+//         }
+//     }
+//     pthread_mutex_unlock(&mymutex);
+//     return NULL;
+// }
 
-void* thread_fun2(void* args)
-{
-    pthread_t* threadID = (pthread_t*) args;
-    std::cout << threadID << ": lock in mutext2" << std::endl;
-    pthread_mutex_lock(&mymutex2);
-    std::cout << threadID << ": thread running" << std::endl;
-    sleep(3);
-    std::cout << threadID << ": try to lock mymutext" << std::endl;
-    pthread_mutex_lock(&mymutex);
+// void* thread_fun2(void* args)
+// {
+//     pthread_t* threadID = (pthread_t*) args;
+//     std::cout << threadID << ": lock in mutext2" << std::endl;
+//     pthread_mutex_lock(&mymutex2);
+//     std::cout << threadID << ": thread running" << std::endl;
+//     sleep(3);
+//     std::cout << threadID << ": try to lock mymutext" << std::endl;
+//     pthread_mutex_lock(&mymutex);
     
-    // 尝试销毁被锁定的mutex对象
-    int  ret = pthread_mutex_destroy(&mymutex);
-    if (ret != 0)
-    {
-        if (ret == EBUSY)
-        {
-            std::cout << "EBUSY" << std::endl;
-            std::cout << "Failed to destory mutex." << std::endl;
-        }
-    }
-    pthread_mutex_unlock(&mymutex);
-    return NULL;
-}
+//     // 尝试销毁被锁定的mutex对象
+//     int  ret = pthread_mutex_destroy(&mymutex);
+//     if (ret != 0)
+//     {
+//         if (ret == EBUSY)
+//         {
+//             std::cout << "EBUSY" << std::endl;
+//             std::cout << "Failed to destory mutex." << std::endl;
+//         }
+//     }
+//     pthread_mutex_unlock(&mymutex);
+//     return NULL;
+// }
 
-int main()
-{
-    pthread_mutex_init(&mymutex, NULL); // 一般不用检查初始化结果
-    pthread_mutex_init(&mymutex2, NULL); // 一般不用检查初始化结果
-    pthread_t threadID1, threadID2, threadID3;
-    pthread_create(&threadID1, NULL, thread_fun, &threadID1);
-    pthread_create(&threadID2, NULL, thread_fun2, &threadID2);
-    // pthread_create(&threadID3, NULL, thread_fun, &threadID3);
-    pthread_join(threadID1, NULL);
-    pthread_join(threadID2, NULL);
-    // pthread_join(threadID3, NULL);
-    // 尝试销毁已经解锁的mutex对象
-    int ret = pthread_mutex_destroy(&mymutex);
-    int ret2 = pthread_mutex_destroy(&mymutex2);
-    if (ret == 0 && ret2 == 0)
-    {
-        std::cout << "Successed to destory mutex." << std::endl;
-    }
-    return 0;
-}
+// int main()
+// {
+//     pthread_mutex_init(&mymutex, NULL); // 一般不用检查初始化结果
+//     pthread_mutex_init(&mymutex2, NULL); // 一般不用检查初始化结果
+//     pthread_t threadID1, threadID2, threadID3;
+//     pthread_create(&threadID1, NULL, thread_fun, &threadID1);
+//     pthread_create(&threadID2, NULL, thread_fun2, &threadID2);
+//     // pthread_create(&threadID3, NULL, thread_fun, &threadID3);
+//     pthread_join(threadID1, NULL);
+//     pthread_join(threadID2, NULL);
+//     // pthread_join(threadID3, NULL);
+//     // 尝试销毁已经解锁的mutex对象
+//     int ret = pthread_mutex_destroy(&mymutex);
+//     int ret2 = pthread_mutex_destroy(&mymutex2);
+//     if (ret == 0 && ret2 == 0)
+//     {
+//         std::cout << "Successed to destory mutex." << std::endl;
+//     }
+//     return 0;
+// }
 
 /*
 linux 信号量
