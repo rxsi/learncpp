@@ -13,6 +13,8 @@ TODO：测试是否是同个进程内的多线程的write，read是原子性的�
 #include <fstream>
 #include <sys/file.h>
 #include <sys/wait.h>
+#include <string.h>
+#include <string>
 
 /*
 linux系统底层系统函数：
@@ -301,7 +303,8 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 //             break;
 //         }
 //         std::cout << "data_len: " << len << ", data: " << buf << ", ";
-//         std::cout << "after fread ftell: " << ftell(stream) << std::endl;
+//         int fd = fileno(stream);
+//         std::cout << "after fread ftell: " << ftell(stream) << ", stream->_file: " << stream->_file << ", fd: " << fd << std::endl;
 //     }
 // }
 
@@ -322,26 +325,109 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 // void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 // {
 //     int i = 200;
+//     int fd = fileno(stream);
+//     // struct flock lock;
+//     // memset (&lock, 0, sizeof(lock));
+//     // lock.l_whence = SEEK_SET;
+//     // lock.l_start = 0;
+//     // lock.l_len = 0;
 //     while (i--)
 //     {
-//         /*
-//         这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
-//         */ 
+//         int ret = flock(fd, LOCK_EX); // 阻塞加锁
+//         if (ret != 0) std::cout << "lock fail" << std::endl;
+//         // lock.l_type = F_WRLCK;
+
+//         // fcntl(fd, F_SETLK, &lock);
+//         fseek(stream, 0, SEEK_END); // 移动到文件尾
+//         std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << ftell(stream) << std::endl;
 //         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//         // fsync(fd); 使用fsync也没有用，依然无法同步
+//         flock(fd, LOCK_UN);
+//         // lock.l_type = F_UNLCK;
+//         // fcntl(fd, F_SETLK, &lock);
 //     }
 // }
 
 
 // int main()
 // {
-//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "w");
+//     FILE *stream1 = fopen("/home/rxsi/hello_world.txt", "w+");
 //     char buf1[] = "aaaaaaaaa";
-//     std::thread t1(writeFunc, stream, &buf1);
+//     std::thread t1(writeFunc, stream1, &buf1);
+//     FILE *stream2 = fopen("/home/rxsi/hello_world.txt", "w+");
 //     char buf2[] = "bbbbbbbbb";
-//     std::thread t2(writeFunc, stream, &buf2);
+//     std::thread t2(writeFunc, stream2, &buf2);
 //     t1.join();
 //     t2.join();
-//     fclose(stream);
+//     fclose(stream1);
+//     fclose(stream2);
+// }
+
+// 使用非缓存版本则正常
+// void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     while (i--)
+//     {
+//         int ret = flock(fd, LOCK_EX); // 阻塞加锁
+//         if (ret != 0) std::cout << "lock fail" << std::endl;
+//         lseek(fd, 0, SEEK_END);// 移动到文件尾
+//         std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << lseek(fd, 0, SEEK_CUR) << std::endl;
+//         ssize_t len = write(fd, buf, sizeof(*buf));
+//         flock(fd, LOCK_UN);
+//     }
+// }
+
+
+// int main()
+// {
+//     int fd1 = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
+//     char buf1[] = "aaaaaaaaa";
+//     std::thread t1(writeFunc, fd1, &buf1);
+//     int fd2 = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
+//     char buf2[] = "bbbbbbbbb";
+//     std::thread t2(writeFunc, fd2, &buf2);
+//     t1.join();
+//     t2.join();
+//     close(fd1);
+//     close(fd2);
+// }
+
+// 使用非缓存版本则正常，使用fcntl加锁
+// void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     struct flock lock;
+//     memset(&lock, 0, sizeof(lock));
+//     lock.l_whence = SEEK_SET;
+//     lock.l_start = 0;
+//     lock.l_len = 0;
+//     while (i--)
+//     {
+//         lock.l_type = F_WRLCK;
+//         int ret = fcntl(fd, F_SETLKW, &lock); // 使用阻塞模式
+//         if (ret != 0) std::cout << "lock fail" << std::endl;
+//         lseek(fd, 0, SEEK_END);// 移动到文件尾
+//         std::cout << "thredID: " << std::this_thread::get_id() << ", ftell: " << lseek(fd, 0, SEEK_CUR) << std::endl;
+//         ssize_t len = write(fd, buf, sizeof(*buf));
+//     }
+//     // lock.l_type = F_UNLCK;
+//     // fcntl(fd, F_SETLK, &lock);
+// }
+
+
+// int main()
+// {
+//     int fd1 = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
+//     char buf1[] = "aaaaaaaaa";
+//     std::thread t1(writeFunc, fd1, &buf1);
+//     int fd2 = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
+//     char buf2[] = "bbbbbbbbb";
+//     std::thread t2(writeFunc, fd2, &buf2);
+//     t1.join();
+//     t2.join();
+//     close(fd1);
+//     close(fd2);
 // }
 
 /*
@@ -372,14 +458,93 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 
 // int main()
 // {
-//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "rw");
+//     FILE *stream1 = fopen("/home/rxsi/hello_world.txt", "a+");
 //     char buf1[] = "aaaaaaaaa";
 //     std::thread t1(writeFunc, stream, &buf1);
-//     std::thread t2(readFunc, stream);
+//     std::thread t2(readFunc, stream, &buf1);
 //     t1.join();
 //     t2.join();
 //     fclose(stream);
 // }
+
+// void readFunc(int fd)
+// {
+//     int i = 100;
+//     while (i--)
+//     {
+//         std::cout << "processID: " << getpid() << ", ";
+//         char buf[10];
+//         std::cout << "before ftell: " << lseek(fd, 0, SEEK_CUR) << ", ";
+//         size_t len = read(fd, buf, sizeof(buf));
+//         std::cout << "len: " << len << ", ";
+//         if (len == 0)
+//         {
+//             std::cout << "empty data" << ", ";
+//         }
+//         else
+//         {
+//             std::cout << "data: " << buf << ", "; 
+//         }
+//         std::cout << "after ftell: " << lseek(fd, 0, SEEK_CUR) << std::endl;
+//     }
+// }
+
+// int main()
+// {
+//     // FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+//     int fd = open("/home/rxsi/hello_world.txt", O_RDONLY);
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+//         readFunc(fd);
+//     }
+//     else
+//     {
+//         readFunc(fd);
+//         int status;
+//         wait(&status);
+//     }
+// }
+
+// void readFunc(std::string flag, FILE *stream)
+// {
+//     int i = 100;
+//     while (i--)
+//     {
+//         std::cout << "flag: " << flag << ", processID: " << getpid() << ", ";
+//         char buf[10];
+//         std::cout << "before ftell: " << ftell(stream) << ", ";
+//         size_t len = fread(buf, 1, sizeof(buf), stream);
+//         std::cout << "len: " << len << ", ";
+//         if (len == 0)
+//         {
+//             std::cout << "empty data" << ", ";
+//         }
+//         else
+//         {
+//             std::cout << "data: " << buf << ", "; 
+//         }
+//         std::cout << "after ftell: " << ftell(stream) << ", fd: " << fileno(stream) << std::endl;
+//     }
+// }
+
+// int main()
+// {
+//     FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+//         readFunc("parent", stream);
+//     pid_t pid = fork();
+//     if (pid == 0)
+//     {
+//         readFunc("child", stream);
+//     }
+//     else
+//     {
+//         int status;
+//         wait(&status);
+//     }
+// }
+
+
 
 /*
 1. 多进程读
@@ -432,7 +597,7 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 //     while (i--)
 //     {
 //         /*
-//         这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "aaaaaaaaa" file 可以查看
+//         这里会交替写入200个a和b，使用 grep -c "aaaaaaaaa" file， grep -c "bbbbbbbbb" file 可以查看
 //         */ 
 //         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
 //         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
@@ -457,18 +622,21 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 //     }
 // }
 
-// 这里使用加文件锁的方式
+// 这里使用加文件锁的方式，会互相覆盖
 // void writeFunc(FILE *stream, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 // {
 //     int i = 200;
 //     int fd = fileno(stream);
 //     while (i--)
 //     {
-//         while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
+//         int ret = flock(fd, LOCK_EX);
+//         if (ret != 0) std::cout << "lock err" << std::endl; // 简单处理，一般不会加锁失败
+//         // while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
 //         fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
 //         ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
 //         std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << std::endl;
-//         flock(fd, LOCK_UN); // 使用完就解锁
+//         flock(fd, LOCK_UN);
+//         // if (i == 0) flock(fd, LOCK_UN); // 通过这个方式可以使进程A先执行完再释放锁，因为flock如果fd已经持有锁则可重入，但是只需要解锁一次。
 //     }
 // }
 
@@ -486,6 +654,46 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 //         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
 //         char buf[] = "bbbbbbbbb";
 //         writeFunc(stream, &buf);
+//         int status;
+//         wait(&status);
+//     }
+// }
+
+// 使用open版本不带缓存的会正常，而fopen则不正常，表现为ftell会获取到已经被写入的位置，怀疑是缓存未及时更新的原因
+// void writeFunc(int fd, char (*buf)[10]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     int i = 200;
+//     while (i--)
+//     {
+//         int ret = flock(fd, LOCK_EX);
+//         if (ret != 0) std::cout << "lock err" << std::endl; // 简单处理，一般不会加锁失败
+//         // while (flock(fd, LOCK_EX | LOCK_NB) != 0) {} // 使用while循环非阻塞加锁直到成功
+//         lseek(fd, 0, SEEK_END);
+//         // fseek(stream, 0, SEEK_END); // 每次都移动到文件的末尾，保证两个进程不会互相覆盖
+//         ssize_t len = write(fd, buf, sizeof(*buf));
+//         // ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//         std::cout << "processID: " << getpid() << ", ftell: " << lseek(fd, 0, SEEK_CUR) << std::endl;
+//         flock(fd, LOCK_UN);
+//         // if (i == 0) flock(fd, LOCK_UN); // 通过这个方式可以使进程A先执行完再释放锁，因为flock如果fd已经持有锁则可重入，但是只需要解锁一次。
+//     }
+// }
+
+// int main()
+// {
+//     pid_t pid = fork();
+//     if (pid == 0) // 子进程
+//     {
+//         int fd = open("/home/rxsi/hello_world.txt", O_WRONLY | O_TRUNC);
+//         char buf[] = "aaaaaaaaa";
+//         writeFunc(fd, &buf);
+//     }
+//     else
+//     {
+//         int fd = open("/home/rxsi/hello_world.txt", O_WRONLY | O_TRUNC);
+//         char buf[] = "bbbbbbbbb";
+//         writeFunc(fd, &buf);
+//         int status = 0;
+//         wait(&status);
 //     }
 // }
 
@@ -494,53 +702,120 @@ LOCK_UN：移除本进程添加的共享/互斥锁
 */
 
 // 未加锁，那么会出现读取到别人写一半的内容
-void writeFunc(FILE *stream, char (*buf)[6670]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// void writeFunc(FILE *stream, char (*buf)[11]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
+// {
+//     ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
+//     std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << ", write success" << std::endl;
+// }
+
+// // 假设当前读取缓存区不足以一次性读取所有的数据，因此分了两次进行读取
+// void readFunc(FILE *stream)
+// {
+//     int i = 10;
+//     char buf[10];
+//     int step = 0;
+//     while (i--)
+//     {
+//         char temp[1] = {0};
+//         size_t len = fread(temp, 1, sizeof(temp), stream);
+//         std::cout << len << " , " << temp << " , " << sizeof(temp) << std::endl;
+//         strcpy(buf+step, temp);
+//         step += 1;
+//         std::this_thread::sleep_for(std::chrono::seconds(1));
+//     }
+//     std::cout << buf << std::endl;
+// }
+
+// int main()
+// {
+//     pid_t pid = fork();
+//     if (pid == 0) // 子进程，先写入aaaaaaaaa，然后再写入bbbbbbbbb
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
+//         char buf1[] = "aaaaaaaaaa";
+//         writeFunc(stream, &buf1); // 先写入了aaaaaaaaa
+//         fseek(stream, 0, SEEK_SET); // 把文件偏移量设置回文件开头
+//         char temp[10];
+//         size_t len = fread(temp, 1, sizeof(temp), stream);
+//         std::cout << temp << std::endl;
+//         std::this_thread::sleep_for(std::chrono::seconds(5));
+//         fseek(stream, 0, SEEK_SET); // 把文件偏移量设置回文件开头
+//         char buf2[] = "bbbbbbbbbb";
+//         writeFunc(stream, &buf2); // 再从头写入bbbbbbbbb
+//     }
+//     else
+//     {
+//         FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
+//         std::this_thread::sleep_for(std::chrono::seconds(1));
+//         readFunc(stream);
+//         int status = 0;
+//         wait(&status);
+//     }
+// }
+
+
+void writeFunc(int fd, char (*buf)[6]) // char buf[]、char *buf、char buf[11]都会被转换为指针丢失了数组特性，因此如果要保留数组特性那么需要使用数组指针 char (*buf)[]
 {
-    // int i = 200;
-    // while (i--)
-    // {
-    ssize_t len = fwrite(*buf, 1, sizeof(*buf), stream);
-    std::cout << "processID: " << getpid() << ", ftell: " << ftell(stream) << ", write success" << std::endl;
-    // }
+    struct flock lock;
+    memset(&lock, 0, sizeof(lock));
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
+    lock.l_type = F_WRLCK; // 这里加写锁
+    int ret = fcntl(fd, F_SETLKW, &lock);
+    ssize_t len = write(fd, *buf, sizeof(*buf));
+    lock.l_type = F_UNLCK;
+    fcntl(fd, F_SETLK, &lock); // 解锁
 }
 
-void readFunc(FILE *stream)
+// 假设当前读取缓存区不足以一次性读取所有的数据，因此分了两次进行读取
+void readFunc(int fd)
 {
-    // int i = 200;
-    // while (i--)
-    // {
-    std::cout << "processID: " << getpid() << ", ";
-    char buf[200];
-    std::cout << "before ftell: " << ftell(stream) << ", ";
-    size_t len = fread(buf, 1, sizeof(buf), stream);
-    std::cout << "len: " << len << ", ";
-    if (len == 0)
+    int i = 3;
+    char buf[6];
+    int step = 0;
+    char temp[2];
+    struct flock lock;
+    memset(&lock, 0, sizeof(lock));
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
+    while (i--)
     {
-        std::cout << "empty data" << ", ";
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        lock.l_type = F_RDLCK; // 这里加读锁就好了，如果有多个进程同时调用，那么可以同时进行读取
+        int ret = fcntl(fd, F_SETLKW, &lock);
+        size_t len = read(fd, temp, sizeof(temp));
+        strcpy(buf+step, temp);
+        step += 2;
     }
-    else
-    {
-        std::cout << "data: " << buf << ", "; 
-    }
-    std::cout << "after ftell: " << ftell(stream) << std::endl;
-    // }
+    lock.l_type = F_UNLCK;
+    fcntl(fd, F_SETLK, &lock); // 读取完毕，解锁
+    std::cout << buf << std::endl;
 }
 
 int main()
 {
     pid_t pid = fork();
-    if (pid == 0) // 子进程
+    if (pid == 0) // 子进程，先写入aaaaaaaaa，然后再写入bbbbbbbbb
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "w"); 
-        char buf[] = "abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920abcdefghijklmnopqrstuvwxyz1234567891011121314151617181920";
-        writeFunc(stream, &buf);
+        int fd = open("/home/rxsi/hello_world.txt", O_WRONLY|O_TRUNC);
+        char buf1[] = "aaaaa";
+        writeFunc(fd, &buf1); // 先写入了aaaaaaaaa
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        lseek(fd, 0, SEEK_SET);
+        char buf2[] = "bbbbb";
+        writeFunc(fd, &buf2); // 再从头写入bbbbbbbbb
     }
     else
     {
-        FILE *stream = fopen("/home/rxsi/hello_world.txt", "r");
-        readFunc(stream);
+        int fd = open("/home/rxsi/hello_world.txt", O_RDONLY);
+        readFunc(fd);
+        int status = 0;
+        wait(&status);
     }
 }
+
 
 // 父子进程共享file结构
 // 父进程先调用readFunc，后再由子进程继续调用readFunc，此时他们输出的ftell是连续的，因此证明了父子进程是共享file结构的。
@@ -550,7 +825,7 @@ int main()
 //     while (i--)
 //     {
 //         std::cout << "processID: " << getpid() << ", ";
-//         char buf[58];
+//         char buf[10];
 //         std::cout << "before ftell: " << ftell(stream) << ", ";
 //         size_t len = fread(buf, 1, sizeof(buf), stream);
 //         std::cout << "len: " << len << ", ";
@@ -581,3 +856,7 @@ int main()
 //         wait(&status); // 等待子进程退出
 //     }
 // }
+
+/*
+测试flock&fcntl&lockf
+*/
