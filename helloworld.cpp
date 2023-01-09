@@ -222,19 +222,54 @@
 //     return 0;
 // }
 
-#include <random>
+// #include <random>
+// #include <iostream>
+// #include <string.h>
+
+// int main()
+// {
+//     while (true)
+//     {
+//         // int j = rand() % 10;
+//         // int b = 1 / j;
+//         // std::cout << b << std::endl;
+//         char* p = (char*)malloc(10000000);
+//         memset(p, '\0', 10000000);
+//     }
+//     return 0;
+// }
+
+// #include <unordered_map>
+// #include <iostream>
+
+// class A
+// {
+// private:
+//     std::unordered_map<int, A> myMap;
+
+// public:
+//     A(){}
+//     void show()
+//     {
+//         std::cout << "show" << std::endl;
+//     }
+
+// };
+
+// int main()
+// {
+//     A a;
+//     a.show();
+// }
+
+#include <vector>
 #include <iostream>
-#include <string.h>
+#include <algorithm>
+using namespace std;
 
 int main()
 {
-    while (true)
-    {
-        // int j = rand() % 10;
-        // int b = 1 / j;
-        // std::cout << b << std::endl;
-        char* p = (char*)malloc(10000000);
-        memset(p, '\0', 10000000);
-    }
-    return 0;
+    vector<int> res{1, 3, 5};
+    auto iter = upper_bound(res.begin(), res.end(), 9);
+    cout << flag << endl;
 }

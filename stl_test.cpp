@@ -118,27 +118,27 @@ struct pair_hash
 };
 
 
-void fun(int a[5])
-{
-    cout << sizeof(a) << endl;
-}
+// void fun(int a[5])
+// {
+//     cout << sizeof(a) << endl;
+// }
 
-void fun1(int *a)
-{
-    cout << sizeof(a) << endl;
-}
+// void fun1(int *a)
+// {
+//     cout << sizeof(a) << endl;
+// }
 
-void fun2(int a[])
-{
-    cout << sizeof(a) << endl;
-}
+// void fun2(int a[])
+// {
+//     cout << sizeof(a) << endl;
+// }
 
-void fun3(int (*p)[5])
-{
-    cout << sizeof(*p) << endl;
-}
+// void fun3(int (*p)[5])
+// {
+//     cout << sizeof(*p) << endl;
+// }
 
-void fun4(int *p){};
+// void fun4(int *p){};
 // void fun4(int *const p){};
 // void fun4(const int *p){};
 
@@ -262,21 +262,21 @@ int main(){
     // // 关于pair的比较,默认会先比较元素1, 再比较元素2 // std::less<pair<int, int>>
     // 对于优先队列来说，默认是less函数，即比较的是A < B，按照一般的比较函数定义来说，这意味着A在B之前，也就是小的在前，但是最后形成的却是大顶堆
     // 这意味着top操作拿到的是大的那个值，和直觉相反。。。。。。
-    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, myCmp2> myPriorityQueue4;
-    std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, decltype(&myCmp)> myPriorityQueue5;
-    // 使用lambda函数自定义比较
-    auto lambdaCmp = [](pair<int, int>& m, pair<int, int>& n) {
-        if (m.first == n.first) return m.second > n.second;
-        return m.first > n.first;
-    };
-    // std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, decltype(lambdaCmp)> myPriorityQueue5;
+    // std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, myCmp2> myPriorityQueue4;
+    // std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, decltype(&myCmp)> myPriorityQueue5;
+    // // 使用lambda函数自定义比较
+    // auto lambdaCmp = [](pair<int, int>& m, pair<int, int>& n) {
+    //     if (m.first == n.first) return m.second > n.second;
+    //     return m.first > n.first;
+    // };
+    // // std::priority_queue<pair<int, int>, std::vector<pair<int, int>>, decltype(lambdaCmp)> myPriorityQueue5;
 
-    for (int i = 0; i < 5; i++)
-    {
-        // myPriorityQueue5.push(pair<int, int>(i, i+1));
-        myPriorityQueue5.emplace(i, i+1); // 使用emplace时只需要传入类型的参数,如果直接传入pair<int, int>(i, i+1)则实际和push没有差别
-        cout << myPriorityQueue5.top().first << " "<< myPriorityQueue5.top().second << endl;
-    }
+    // for (int i = 0; i < 5; i++)
+    // {
+    //     // myPriorityQueue5.push(pair<int, int>(i, i+1));
+    //     myPriorityQueue5.emplace(i, i+1); // 使用emplace时只需要传入类型的参数,如果直接传入pair<int, int>(i, i+1)则实际和push没有差别
+    //     cout << myPriorityQueue5.top().first << " "<< myPriorityQueue5.top().second << endl;
+    // }
 
     // std::cout << "priority_queue_size = " << myPriorityQueue5.size() << std::endl;
     // std::cout << "priority_queue x = " << myPriorityQueue5.top().first << ", second = " << myPriorityQueue5.top().second << std::endl;
@@ -372,6 +372,17 @@ int main(){
     // auto iter = set1.begin(); // 底层是hashtable,是正向迭代器
     // iter++;
     // // iter--; //没有--操作
+    // unordered_set<pair<int, int>, pair_hash> Set; // 方式1：使用struct，注意一点就是必须要是operator函数的参数一定要是const
+    auto hash_func = [](const pair<int, int>& p)
+    {
+        return hash<int>{}(p.first) ^ hash<int>{}(p.second);
+    };
+    unordered_set<pair<int, int>, decltype(hash_func)> Set(0, hash_func); // 注意0是指定初始的桶的数量，当使用lambda函数时必须指定，范围是0 ~ bucketCount-1
+
+    Set.insert(make_pair(1, 2));
+    cout << "count = " << Set.bucket_count() << endl;
+    cout << "size = " << Set.bucket_size(0) << endl;
+
 
     // forward_list<int> lst{1, 2, 3, 4};
     // auto iter2 = lst.begin();
@@ -473,12 +484,12 @@ int main(){
     //     std::cout << kv.first.first << " " << kv.first.second << " " << kv.second << std::endl;
     // }
 
-    unordered_map<string, int> myMap;
-    myMap["123"] = 1;
+    // unordered_map<string, int> myMap;
+    // myMap["123"] = 1;
 
-    unordered_map<float, int> myMap2;
-    myMap2[1.22f] = 1123;
-    std::cout << myMap2[1.22f] << endl;
+    // unordered_map<float, int> myMap2;
+    // myMap2[1.22f] = 1123;
+    // std::cout << myMap2[1.22f] << endl;
 
     // map<pair<int, int>, int> myMap2; // map可以直接把pair当作key,而且他可以接收的是自定义的排序算法,而不是hash算法
     // map<pair<int, int>, int, myCmp2> myMap3;
@@ -528,26 +539,26 @@ int main(){
     // cout << &c << endl;
     // fun4(b);
 
-    std::vector<int> v{10, 20, 30, 5, 15};
+    // std::vector<int> v{10, 20, 30, 5, 15};
 
-    std::make_heap(v.begin(),v.end()); // 构建大顶堆，v的头个元素是最大值，但是后面的其他值是无序的
-    std::cout << "initial max heap   : " << v.front() << '\n'; // 30
+    // std::make_heap(v.begin(),v.end()); // 构建大顶堆，v的头个元素是最大值，但是后面的其他值是无序的
+    // std::cout << "initial max heap   : " << v.front() << '\n'; // 30
 
-    std::pop_heap(v.begin(),v.end()); // 将首元素与最后的元素进行swap，即[start, last-1)形成一个大顶堆，last-1是原数组的最大值
-    std::cout << "max heap after pop : " << v.front() << '\n'; // 20
-    std::cout << "old max in the heap : " << v.back() << '\n'; // 30
-    v.pop_back(); // 注意，当调用了pop_heap之后，last-1的位置已经不符合堆的排序了，因此要弹出
+    // std::pop_heap(v.begin(),v.end()); // 将首元素与最后的元素进行swap，即[start, last-1)形成一个大顶堆，last-1是原数组的最大值
+    // std::cout << "max heap after pop : " << v.front() << '\n'; // 20
+    // std::cout << "old max in the heap : " << v.back() << '\n'; // 30
+    // v.pop_back(); // 注意，当调用了pop_heap之后，last-1的位置已经不符合堆的排序了，因此要弹出
 
-    v.push_back(99);
-    std::push_heap(v.begin(),v.end()); // 要求将新值插入到last-1处，然后调用此方法进行堆的重构
-    std::cout << "max heap after push: " << v.front() << '\n';
+    // v.push_back(99);
+    // std::push_heap(v.begin(),v.end()); // 要求将新值插入到last-1处，然后调用此方法进行堆的重构
+    // std::cout << "max heap after push: " << v.front() << '\n';
 
-    std::sort_heap(v.begin(),v.end()); // 输出排序后的结果，内部实现就是一个while循环去调用pop_heap
+    // std::sort_heap(v.begin(),v.end()); // 输出排序后的结果，内部实现就是一个while循环去调用pop_heap
 
-    std::cout << "final sorted range :";
-    for (unsigned i=0; i<v.size(); i++)
-    std::cout << ' ' << v[i];
+    // std::cout << "final sorted range :";
+    // for (unsigned i=0; i<v.size(); i++)
+    // std::cout << ' ' << v[i];
 
-    std::cout << '\n';
+    // std::cout << '\n';
     return 0;
 } 

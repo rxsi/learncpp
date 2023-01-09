@@ -355,3 +355,21 @@ public:
 //     // d.f();
 //     return 0;
 // }
+
+#include <iostream>
+using namespace std;
+
+template <typename T>
+T max(T a, T b)
+{
+    return a < b ? b: a;
+}
+
+int main()
+{
+    int c = ::max<>(1, 2);
+    int d = ::max<int>(2, 3);
+    cout << d << endl;
+    int a = 1;
+    double b = 1.2;
+}
