@@ -89,26 +89,29 @@ int main()
 //     return 0;
 // }
 
-// #include <sys/syscall.h>
-// #include <unistd.h>
-// #include <stdio.h>
-// #include <pthread.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <pthread.h>
+#include <iostream>
 
-// void* thread_proc(void* args)
-// {
-//     pthread_t* tid1 = (pthread_t*) args; // 输出指向线程的内存地址，不是全系统唯一的，因为可能不同进程共享了同一块内存
-//     int tid2 = syscall(SYS_gettid); // 全系统唯一，是LWP的ID（轻量级进程，早期linux系统的线程是通过进程实现的）
-//     pthread_t tid3 = pthread_self(); // 输出指向线程的内存地址，不是全系统唯一的，因为可能不同进程共享了同一块内存
+void* thread_proc(void* args)
+{
+    pthread_t* tid1 = (pthread_t*) args; // 输出指向线程的内存地址，不是全系统唯一的，因为可能不同进程共享了同一块内存
+    cout << "tid = " << *tid1 << endl;
+    int tid2 = syscall(SYS_gettid); // 全系统唯一，是LWP的ID（轻量级进程，早期linux系统的线程是通过进程实现的）
+    cout << "tid2 = " << tid2 << endl;
+    pthread_t tid3 = pthread_self(); // 输出指向线程的内存地址，不是全系统唯一的，因为可能不同进程共享了同一块内存
+    cout << "tid3 = " << tid3;
+}
 
-// }
-
-// int main()
-// {
-//     pthread_t tid;
-//     pthread_create(&tid, NULL, thread_proc, &tid);
-//     pthread_join(tid, NULL);
-//     return 0;
-// }
+int main()
+{
+    pthread_t tid;
+    pthread_create(&tid, NULL, thread_proc, &tid);
+    pthread_join(tid, NULL);
+    return 0;
+}
 
 
 
