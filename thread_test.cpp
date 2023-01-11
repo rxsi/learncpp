@@ -114,6 +114,8 @@ int main()
     pthread_t tid;
     pthread_create(&tid, NULL, thread_proc, &tid);
     pthread_join(tid, NULL);
+    pid_t pid = getpid();
+    cout << "main thread pid = " << (int)pid << endl;
     return 0;
 }
 
