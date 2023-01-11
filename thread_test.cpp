@@ -116,6 +116,8 @@ int main()
     pthread_join(tid, NULL);
     pid_t pid = getpid();
     cout << "main thread pid = " << (int)pid << endl;
+    int tid2 = syscall(SYS_gettid);
+    cout << "main thread LWP id = " << tid2 << endl;
     return 0;
 }
 
