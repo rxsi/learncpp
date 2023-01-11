@@ -102,7 +102,9 @@ void* thread_proc(void* args)
     int tid2 = syscall(SYS_gettid); // 全系统唯一，是LWP的ID（轻量级进程，早期linux系统的线程是通过进程实现的）
     cout << "tid2 = " << tid2 << endl;
     pthread_t tid3 = pthread_self(); // 输出指向线程的内存地址，不是全系统唯一的，因为可能不同进程共享了同一块内存
-    cout << "tid3 = " << tid3;
+    cout << "tid3 = " << (int)tid3 << endl;
+    pid_t pid = getpid();
+    cout << "pid = " << (int)pid << endl;
 }
 
 int main()
