@@ -28,52 +28,52 @@
 // }
 
 
-#include <stdio.h>
-#include <thread>
-#include <iostream>
-#include <vector>
-#include <ctime>
+// #include <stdio.h>
+// #include <thread>
+// #include <iostream>
+// #include <vector>
+// #include <ctime>
 
-void threadproc1()
-{
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    // std::cout << "C++ std::thread 1" << std::endl;
-}
+// void threadproc1()
+// {
+//     std::this_thread::sleep_for(std::chrono::seconds(1));
+//     // std::cout << "C++ std::thread 1" << std::endl;
+// }
 
-void start_fun()
-{
-    for (int i = 0; i < 5; ++i)
-    {
-        std::thread t(threadproc1);
-        t.join();
-    }
-}
+// void start_fun()
+// {
+//     for (int i = 0; i < 5; ++i)
+//     {
+//         std::thread t(threadproc1);
+//         t.join();
+//     }
+// }
 
-void start_fun2()
-{
-    std::vector<std::thread> threads;
-    for (int i = 0; i < 5; ++i)
-    {
-        threads.emplace_back(std::thread(threadproc1));
-    }
-    for (int i = 0; i < 5; ++i)
-    {
-        threads[i].join();
-    }
-}
+// void start_fun2()
+// {
+//     std::vector<std::thread> threads;
+//     for (int i = 0; i < 5; ++i)
+//     {
+//         threads.emplace_back(std::thread(threadproc1));
+//     }
+//     for (int i = 0; i < 5; ++i)
+//     {
+//         threads[i].join();
+//     }
+// }
 
-int main()
-{
-    time_t now = time(0);
-    std::cout << "start_time: " << now << std::endl;
-    start_fun();
-    now = time(0);
-    std::cout << "end_time: " << now << std::endl;
-    std::cout << "start_time: " << now << std::endl;
-    start_fun2();
-    now = time(0);
-    std::cout << "end_time: " << now << std::endl;
-}
+// int main()
+// {
+//     time_t now = time(0);
+//     std::cout << "start_time: " << now << std::endl;
+//     start_fun();
+//     now = time(0);
+//     std::cout << "end_time: " << now << std::endl;
+//     std::cout << "start_time: " << now << std::endl;
+//     start_fun2();
+//     now = time(0);
+//     std::cout << "end_time: " << now << std::endl;
+// }
 
 // void threadproc2(int a, int b)
 // {
