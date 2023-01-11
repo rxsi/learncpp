@@ -106,6 +106,7 @@ void* thread_proc(void* args)
     cout << "tid3 = " << (int)tid3 << endl;
     pid_t pid = getpid();
     cout << "pid = " << (int)pid << endl;
+    return NULL;
 }
 
 int main()
