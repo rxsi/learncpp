@@ -94,6 +94,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <iostream>
+using namespace std;
 
 void* thread_proc(void* args)
 {
