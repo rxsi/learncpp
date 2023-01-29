@@ -175,6 +175,7 @@ class A
 {
 public:
     void func(){}
+    int a;
     // {
     //     cout << "A::func" << endl;
     // }
@@ -184,6 +185,7 @@ class B
 {
 public:
     void func(){}
+    int a;
     // {
     //     cout << "B::func" << endl;
     // }
@@ -193,6 +195,7 @@ class C: public A, public B
 {
 public:
     void func() {}
+    int a;
     // {
     //     cout << "C::func" << endl;
     // }
