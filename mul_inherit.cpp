@@ -228,15 +228,16 @@
 struct A
 {
     int ax;
-    virtual void f0(){}
-    virtual void f1(){}
+    virtual void f0() {}
+    virtual void f1() {}
     /* data */
 };
 
 struct B: public A
 {
     int bx;
-    void f0() override {};
+    void f0() override {}
+    void f2() {}
     /* data */
 };
 
