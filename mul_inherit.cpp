@@ -245,12 +245,14 @@
 struct A
 {
     int ax;
+    int ax2;
     virtual void f0() {}
 };
 
 struct B
 {
     int bx;
+    int bx2;
     virtual void f1() {}
 };
 
