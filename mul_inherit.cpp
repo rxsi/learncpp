@@ -236,8 +236,8 @@ struct A
 struct B: public A
 {
     int bx;
-    void f0() override {}
-    virtual void f2() {}
+    void f0() override {} // 而这里由于父类有同名的虚函数，因此编译器会把他放到虚表中
+    virtual void f2() {} // 注意要写成virtual才会在虚表中
     /* data */
 };
 
