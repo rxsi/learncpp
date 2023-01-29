@@ -174,7 +174,7 @@
 class A
 {
 public:
-    void func(){}
+    virtual void func(){}
     int a;
     // {
     //     cout << "A::func" << endl;
@@ -184,7 +184,7 @@ public:
 class B
 {
 public:
-    void func(){}
+    virtual void func(){}
     int a;
     // {
     //     cout << "B::func" << endl;
@@ -194,7 +194,7 @@ public:
 class C: public A, public B
 {
 public:
-    void func() {}
+    void func() override{}
     int a;
     // {
     //     cout << "C::func" << endl;
