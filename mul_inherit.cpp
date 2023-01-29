@@ -175,7 +175,8 @@ class A
 {
 public:
     virtual void func(){}
-    int a;
+    int a = 12;
+    int b = 13;
     // {
     //     cout << "A::func" << endl;
     // }
@@ -185,7 +186,8 @@ class B
 {
 public:
     virtual void func(){}
-    int a;
+    int a = 22;
+    int b = 14;
     // {
     //     cout << "B::func" << endl;
     // }
@@ -195,7 +197,7 @@ class C: public A, public B
 {
 public:
     void func() override{}
-    int a;
+    int a = 1;
     // {
     //     cout << "C::func" << endl;
     // }
