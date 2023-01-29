@@ -168,54 +168,54 @@
 //     // // 尽管X、Y的有参构造函数会调用Base的有参构造函数，但是并不会执行！！！！！！！！！！
 // }
 
-#include <iostream>
-using namespace std;
+// #include <iostream>
+// using namespace std;
 
 class A
 {
 public:
-    virtual void func()
-    {
-        cout << "A::func" << endl;
-    }
+    virtual void func(){}
+    // {
+    //     cout << "A::func" << endl;
+    // }
 };
 
 class B
 {
 public:
-    virtual void func()
-    {
-        cout << "B::func" << endl;
-    }
+    virtual void func(){}
+    // {
+    //     cout << "B::func" << endl;
+    // }
 };
 
 class C: public A, public B
 {
 public:
-    void func() override
-    {
-        cout << "C::func" << endl;
-    }
+    void func() override {}
+    // {
+    //     cout << "C::func" << endl;
+    // }
 };
 
-int main()
-{
-    A *ac = new C();
-    ac->func();
-    B *bc = new C();
-    bc->func();
-    C *cc = new C();
-    cc->A::func();
-    cc->B::func();
-    cc->func();
-    // A *aa = new A();
-    // aa->func();
-    // C c;
-    // c.A::func();
-    // c.B::func();
-    // C c;
-    // c.A::func();
-    // c.B::func();
-    // c.func();
-    return 0;
-}
+// int main()
+// {
+//     A *ac = new C();
+//     ac->func();
+//     B *bc = new C();
+//     bc->func();
+//     C *cc = new C();
+//     cc->A::func();
+//     cc->B::func();
+//     cc->func();
+//     // A *aa = new A();
+//     // aa->func();
+//     // C c;
+//     // c.A::func();
+//     // c.B::func();
+//     // C c;
+//     // c.A::func();
+//     // c.B::func();
+//     // c.func();
+//     return 0;
+// }
