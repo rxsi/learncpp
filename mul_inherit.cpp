@@ -259,4 +259,5 @@ struct C : public A, public B
     int cx;
     void f0() override {}
     void f1() override {}
+    virtual void f2() {}
 };
