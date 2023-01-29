@@ -246,6 +246,7 @@ struct A
 {
     int ax;
     int ax2;
+    int ax3;
     virtual void f0() {}
 };
 
@@ -253,6 +254,7 @@ struct B
 {
     int bx;
     int bx2;
+    int bx3;
     virtual void f1() {}
 };
 
