@@ -225,19 +225,38 @@
 // //     return 0;
 // // }
 
+// struct A
+// {
+//     int ax;
+//     virtual void f0() {}
+//     virtual void f1() {}
+//     /* data */
+// };
+
+// struct B: public A
+// {
+//     int bx;
+//     void f0() override {} // 而这里由于父类有同名的虚函数，因此编译器会把他放到虚表中
+//     virtual void f2() {} // 注意要写成virtual才会在虚表中
+//     /* data */
+// };
+
+
 struct A
 {
     int ax;
     virtual void f0() {}
-    virtual void f1() {}
-    /* data */
 };
 
-struct B: public A
+struct B
 {
     int bx;
-    void f0() override {} // 而这里由于父类有同名的虚函数，因此编译器会把他放到虚表中
-    virtual void f2() {} // 注意要写成virtual才会在虚表中
-    /* data */
+    virtual void f1() {}
 };
 
+struct C : public A, public B
+{
+    int cx;
+    void f0() override {}
+    void f1() override {}
+};
