@@ -237,7 +237,7 @@ struct B: public A
 {
     int bx;
     void f0() override {}
-    void f2() {}
+    virtual void f2() {}
     /* data */
 };
 
