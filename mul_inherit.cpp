@@ -241,7 +241,6 @@
 //     /* data */
 // };
 
-
 struct A
 {
     int ax;
@@ -265,3 +264,11 @@ struct C : public A, public B
     void f1() override {}
     virtual void f2() {}
 };
+
+int main()
+{
+    B *bc = new C();
+    cout << "bc: " << bc->f1() << endl;
+    A *ac = dynamic_cast<A*>(bc);
+    cout << "ac: " << ac->f0() << endl;
+}
