@@ -243,34 +243,34 @@ C++对象内存布局
 //     b -> fun(); // 输出的是1,即定义在Base中的默认值
 // }
 
-#include <iostream>
-#include <string>
+// #include <iostream>
+// #include <string>
 
-typedef void (*Fun)(void);
+// typedef void (*Fun)(void);
 
-class Base
-{
-public:
-    virtual void f()
-    {
-        std::cout << "Base::f()" << std::endl;
-    }
+// class Base
+// {
+// public:
+//     virtual void f()
+//     {
+//         std::cout << "Base::f()" << std::endl;
+//     }
 
-    virtual void g()
-    {
-        std::cout << "Base::g()" << std::endl;
-    }
+//     virtual void g()
+//     {
+//         std::cout << "Base::g()" << std::endl;
+//     }
 
-    virtual void h()
-    {
-        std::cout << "Base::h()" << std::endl;
-    }
-private:
-    int a;
-    int b;
-};
+//     virtual void h()
+//     {
+//         std::cout << "Base::h()" << std::endl;
+//     }
+// private:
+//     int a;
+//     int b;
+// };
 
-int main()
-{
-    Base b;
-}
+// int main()
+// {
+//     Base b;
+// }
