@@ -241,34 +241,91 @@
 //     /* data */
 // };
 
+// #include <iostream>
+// using namespace std;
+
+// struct A
+// {
+//     int ax;
+//     int ax2;
+//     int ax3;
+//     virtual void f0() 
+//     {
+//         cout << "A:f0" << endl;
+//     }
+// };
+
+// struct B
+// {
+//     int bx;
+//     int bx2;
+//     int bx3;
+//     virtual void f1() 
+//     {
+//         cout << "B:f1" << endl;
+//     }
+// };
+
+// struct C : public A, public B
+// {
+//     int cx;
+//     void f0() override 
+//     {
+//         cout << "C:f0" << endl;
+//     }
+//     void f1() override 
+//     {
+//         cout << "C:f1" << endl;
+//     }
+//     virtual void f2() 
+//     {
+//         cout << "C:f2" << endl;
+//     }
+// };
+
+// int main()
+// {
+//     A *ac = new C();
+//     cout << "ac: " << ac << endl;
+//     typedef void(*Fun)();
+//     int *ptr_F0 = (int*)*(int*)ac;
+//     Fun IsF0 = (Fun)*ptr_F0;
+//     cout << "ptr_F0: " << ptr_F0 << endl;
+//     IsF0();
+//     B *bc = dynamic_cast<B*>(ac);
+//     cout << "bc: " << bc << endl;
+//     int* ptr_F1 = (int*)*(int*)bc;
+//     Fun IsF1 = (Fun)*ptr_F1;
+//     cout << "ptr_F1: " << ptr_F1 << endl;
+//     IsF1();
+// }
+
+
 struct A
 {
     int ax;
     int ax2;
     int ax3;
     virtual void f0() {}
+    virtual void bar() {}
 };
 
-struct B
+struct B: virtual public A
 {
     int bx;
     int bx2;
     int bx3;
-    virtual void f1() {}
+    void f0() override {}
 };
 
-struct C : public A, public B
+struct C : virtual public A
 {
     int cx;
     void f0() override {}
-    void f1() override {}
-    virtual void f2() {}
 };
 
-int main()
+struct D: public B, public C
 {
-    B *bc = new C();
-    cout << "bc: " << bc->f1() << endl;
-    A *ac = dynamic_cast<A*>(bc);
-    cout << "ac: " << ac->f0() << endl;
-}
+    int dx;
+    void f0() override {}
+};
