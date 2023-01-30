@@ -177,6 +177,7 @@ public:
     virtual void func(){}
     int a = 12;
     int b = 13;
+    int c = 23;
 };
 
 class B
