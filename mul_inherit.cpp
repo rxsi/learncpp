@@ -300,7 +300,7 @@ struct A
 
 struct B: virtual public A
 {
-    int m;
+    int c;
     void f0() override {}
 };
 
