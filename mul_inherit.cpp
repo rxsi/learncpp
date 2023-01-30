@@ -171,37 +171,28 @@
 // // #include <iostream>
 // // using namespace std;
 
-// class A
-// {
-// public:
-//     virtual void func(){}
-//     int a = 12;
-//     int b = 13;
-//     // {
-//     //     cout << "A::func" << endl;
-//     // }
-// };
+class A
+{
+public:
+    virtual void func(){}
+    int a = 12;
+    int b = 13;
+};
 
-// class B
-// {
-// public:
-//     virtual void func(){}
-//     int a = 22;
-//     int b = 14;
-//     // {
-//     //     cout << "B::func" << endl;
-//     // }
-// };
+class B
+{
+public:
+    virtual void func(){}
+    int a = 22;
+    int b = 14;
+};
 
-// class C: public A, public B
-// {
-// public:
-//     void func() override{}
-//     int a = 1;
-//     // {
-//     //     cout << "C::func" << endl;
-//     // }
-// };
+class C: public A, public B
+{
+public:
+    // void func() override{}
+    int a = 1;
+};
 
 // // int main()
 // // {
@@ -301,31 +292,31 @@
 // }
 
 
-struct A
-{
-    int ax;
-    int ax2;
-    int ax3;
-    virtual void f0() {}
-    virtual void bar() {}
-};
+// struct A
+// {
+//     int ax;
+//     int ax2;
+//     int ax3;
+//     virtual void f0() {}
+//     virtual void bar() {}
+// };
 
-struct B: virtual public A
-{
-    int bx;
-    int bx2;
-    int bx3;
-    void f0() override {}
-};
+// struct B: virtual public A
+// {
+//     int bx;
+//     int bx2;
+//     int bx3;
+//     void f0() override {}
+// };
 
-struct C : virtual public A
-{
-    int cx;
-    void f0() override {}
-};
+// struct C : virtual public A
+// {
+//     int cx;
+//     void f0() override {}
+// };
 
-struct D: public B, public C
-{
-    int dx;
-    void f0() override {}
-};
+// struct D: public B, public C
+// {
+//     int dx;
+//     void f0() override {}
+// };
