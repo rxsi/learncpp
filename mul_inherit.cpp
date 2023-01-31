@@ -292,25 +292,69 @@
 //     IsF1();
 // }
 
+// #include <iostream>
+// struct A
+// {
+//     // int ax;
+//     virtual void f0() {}
+//     virtual void bar() {}
+// };
 
-struct A
+// struct B : virtual public A           /****************************/
+// {                                     /*                          */
+//     int bx;                           /*             A            */
+//     void f0() override {}             /*           v/ \v          */
+// };                                    /*           /   \          */
+//                                       /*          B     C         */
+// struct C : virtual public A           /*           \   /          */
+// {                                     /*            \ /           */
+//     int cx;                           /*             D            */
+//     virtual void f1() {}              /*                          */
+// };                                    /****************************/
+
+
+// struct D : public B, public C
+// {
+//     int dx;
+//     void f0() override {}
+// };
+// int main()
+// {
+//     D d;
+//     std::cout << sizeof(D) << std::endl;
+//     return 0;
+// }
+#include <iostream>
+#include <vector>
+
+class A
 {
-    virtual void f0() {}
+    int a;
+    virtual void fun2(){}
 };
 
-struct B: virtual public A
+class B: virtual public A
 {
-    int c;
-    void f0() override {}
+    // virtual void fun(){}
 };
 
-struct C : virtual public A
+class T
 {
-    int m;
-    void f0() override {}
+public:
+    T(int i, std::string s){}
+    T(std::initializer_list<bool> b) {}
 };
 
-struct D: public B, public C
+int main()
 {
-    void f0() override {}
-};
+    std::cout << sizeof(B) << std::endl;
+    std::vector<std::string> v{"1", "2"};
+    std::vector<std::string> c = {"1", "2"};
+    for (auto& d: v) std::cout << d << std::endl;
+    for (auto& d: c) std::cout << d << std::endl;
+    long long a = (long long)INT_MAX + (long long)10;
+    int b{a};
+    std::cout << b << std::endl;
+    T t{1, "ok"};
+    T t2(9, "ok");
+}
