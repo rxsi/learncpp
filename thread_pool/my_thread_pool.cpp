@@ -9,18 +9,18 @@
 
 #define MIN_PRIORITY 1
 #define MAX_PRIORITY 10
-#define MIN_THREAD_POOL 10
-#define MAX_THREAD_POOL 20
+#define MIN_THREAD_POOL 2
+#define MAX_THREAD_POOL 5
 
 class Task
 {
 public:
-    Task(std::function<void()> fun, int priority = MIN_PRIORITY);
+    Task(std::function<void(int)> fun, int priority = MIN_PRIORITY);
     int priority;
-    std::function<void()> fun;
+    std::function<void(int)> fun;
 };
 
-Task::Task(std::function<void()> fun, int priority): priority(priority), fun(fun) {} // priority越大则优先级越高
+Task::Task(std::function<void(int)> fun, int priority): priority(priority), fun(fun) {} // priority越大则优先级越高
 
 class ThreadNode
 {
@@ -124,11 +124,11 @@ void ThreadPool::Start(int defaultPoolSize)
 
 void ThreadPool::addTask(Task* task)
 {
-    std::cout << "add Task" << std::endl;
     {
         std::lock_guard<std::mutex> lock(this->lockMutex);
         if (this->taskQue.size() > MAX_THREAD_POOL && this->curPoolSize < MAX_THREAD_POOL) // 可进行容量拓展
         {
+            std::cout << "add new thread" << std::endl;
             ThreadNode* cur = tail->prev;
             ThreadNode* curNext;
             while (this->curPoolSize < MAX_THREAD_POOL)
@@ -151,7 +151,6 @@ void ThreadPool::addTask(Task* task)
 
 void ThreadPool::ThreadLoopFun(ThreadNode* cur)
 {
-    std::cout << "start loop" << std::endl;
     while (true)
     {
         if (!this->isRunning) break;
@@ -160,10 +159,10 @@ void ThreadPool::ThreadLoopFun(ThreadNode* cur)
             std::unique_lock<std::mutex> lock(this->lockMutex); // 配合条件变量使用必须使用unique_lock，它可以交出锁的控制权
             this->lockCondition.wait_for(lock, std::chrono::seconds(30)); // 最多等待30秒，这里有可能出现被系统中断
             if (taskQue.empty()) break; // 虽然可能是被系统中断了，但是这里直接当失败了
-            Task* task = this->taskQue.top();
+            task = this->taskQue.top();
             taskQue.pop();
         }
-        task->fun();
+        task->fun(task->priority);
         delete task;
     }
     // 超出了循环就要判断是否需要动态缩减线程数
@@ -180,20 +179,28 @@ void ThreadPool::ThreadLoopFun(ThreadNode* cur)
     }
 }
 
-void test_fun()
+void test_fun(int priority)
 {
-    std::cout << "test_fun in threads: " << std::this_thread::get_id() << std::endl;
+    std::cout << "test_fun in threads: " << std::this_thread::get_id() << ", priority = " << priority << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(rand()%10 + 1)); // 随机休眠
+}
+
+void task_fun(ThreadPool& threadPool)
+{
+    for (int i = 0; i < 20; ++i)
+    {
+        int priority = rand() % 10 + 1;
+        Task* t1 = new Task(test_fun, priority);
+        threadPool.addTask(t1);
+    }
 }
 
 int main()
 {
     ThreadPool threadPool;
     threadPool.Start();
-    for (int i = 0; i < 10; ++i)
-    {
-        int priority = rand() % 10 + 1;
-        Task* t1 = new Task(test_fun, priority);
-        threadPool.addTask(t1);
-    }
+    std::thread t(task_fun, std::ref(threadPool));
+    t.join();
+    std::this_thread::sleep_for(std::chrono::seconds(10));
+    threadPool.Stop();
 }
