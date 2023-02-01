@@ -5,52 +5,195 @@
 #include <thread>
 #include <queue>
 #include <functional>
+#include <random>
 
-class task
+#define MIN_PRIORITY 1
+#define MAX_PRIORITY 10
+#define MIN_THREAD_POOL 10
+#define MAX_THREAD_POOL 20
+
+class Task
 {
 public:
-    task(int priority, std::function<void()> fun);
+    Task(std::function<void()> fun, int priority = MIN_PRIORITY);
     int priority;
     std::function<void()> fun;
 };
 
-task::task(int priority = 1, std::function<void()> fun): priority(priority), fun(fun) {} // priority越大则优先级越高
+Task::Task(std::function<void()> fun, int priority): priority(priority), fun(fun) {} // priority越大则优先级越高
 
-class threadPool
+class ThreadNode
 {
 public:
-    threadPool(int minPoolSize = 10); // 默认10个线程
-    ~threadPool();
-    void Start();
+    ThreadNode* prev;
+    ThreadNode* next;
+    std::thread t;
+    ThreadNode(): prev(nullptr), next(nullptr) {}
+};
+
+class ThreadPool
+{
+public:
+    ThreadPool();
+    ~ThreadPool();
+    void Start(int defaultPoolSize = MIN_THREAD_POOL); // 默认10个线程
     void Stop();
 
+    void addTask(Task* task);
+
 private:
-    struct taskCmp
+    void ThreadLoopFun(ThreadNode* node);
+    struct TaskCmp
     {
-        bool operator()(const task *t1, const task *t2)
+        bool operator()(const Task *t1, const Task *t2)
         {
             return t1->priority < t2->priority;
         }
     };
 
 private:
-    std::vector<std::thread*> pool;
-    int minPoolSize;
-    bool isRunning;
-    std::mutex lockMutex;
+    int defaultPoolSize;
+    int curPoolSize;
+    ThreadNode* head;
+    ThreadNode* tail;
+    bool isRunning; // 
+    std::mutex lockMutex; // 一开始使用采用可重入锁，但是无法和condition_variable结合
     std::condition_variable lockCondition;
-    std::priority_queue<task*, std::vector<task*>, taskCmp> taskQue;
+    std::priority_queue<Task*, std::vector<Task*>, TaskCmp> taskQue;
 };
 
-threadPool::threadPool(int minPoolSize)
+ThreadPool::ThreadPool(): isRunning(false)
 {
-    if (minPoolSize <= 0) minPoolSize = 10;
-    this->minPoolSize = minPoolSize;
-    this->pool.resize(this->minPoolSize);
+    this->head = new ThreadNode();
+    this->tail = new ThreadNode();
+    this->head->next = this->tail;
+    this->tail->prev = this->head;
 }
 
-threadPool::~threadPool()
+ThreadPool::~ThreadPool() 
 {
-    std::lock_guard<std::mutex> lock(this->lockMutex);
-    
+    Stop();
+}
+
+void ThreadPool::Stop()
+{
+    {
+        std::lock_guard<std::mutex> lock(this->lockMutex);
+        if (!this->isRunning) return; // 避免重复调用
+        this->isRunning = false; // 别的线程有用到这个变量，因此在修改前需要获取到锁
+    }
+    this->lockCondition.notify_all();
+    ThreadNode* cur = head;
+    ThreadNode* curNext;
+    while (cur != nullptr)
+    {
+        if (cur->t.joinable()) cur->t.join(); // 任务没有运行完那么就等待运行完
+        curNext = cur->next;
+        delete cur;
+        cur = curNext;
+    }
+    this->curPoolSize = 0;
+    while (!taskQue.empty())
+    {
+        Task* t = taskQue.top();
+        taskQue.pop();
+        delete t;
+    }
+}
+
+void ThreadPool::Start(int defaultPoolSize)
+{
+    if (this->isRunning) return; // 避免重复启动
+    this->defaultPoolSize = std::max(std::min(defaultPoolSize, MAX_THREAD_POOL), MIN_THREAD_POOL);
+    ThreadNode* cur = head;
+    ThreadNode* curNext;
+    while (this->curPoolSize < this->defaultPoolSize)
+    {
+        ThreadNode* node = new ThreadNode();
+        node->t = std::thread(&ThreadPool::ThreadLoopFun, this, node);
+        curNext = cur->next;
+        cur->next = node;
+        node->prev = cur;
+        node->next = curNext;
+        curNext->prev = node;
+        cur = node;
+        this->curPoolSize++;
+    }
+    this->isRunning = true;
+}
+
+void ThreadPool::addTask(Task* task)
+{
+    std::cout << "add Task" << std::endl;
+    {
+        std::lock_guard<std::mutex> lock(this->lockMutex);
+        if (this->taskQue.size() > MAX_THREAD_POOL && this->curPoolSize < MAX_THREAD_POOL) // 可进行容量拓展
+        {
+            ThreadNode* cur = tail->prev;
+            ThreadNode* curNext;
+            while (this->curPoolSize < MAX_THREAD_POOL)
+            {
+                ThreadNode* node = new ThreadNode();
+                node->t = std::thread(&ThreadPool::ThreadLoopFun, this, node);
+                curNext = cur->next;
+                cur->next = node;
+                node->prev = cur;
+                node->next = curNext;
+                curNext->prev = node;
+                cur = node;
+                this->curPoolSize++;
+            }
+        }
+        taskQue.push(task);
+    }
+    this->lockCondition.notify_one();
+}
+
+void ThreadPool::ThreadLoopFun(ThreadNode* cur)
+{
+    std::cout << "start loop" << std::endl;
+    while (true)
+    {
+        if (!this->isRunning) break;
+        Task* task;
+        {
+            std::unique_lock<std::mutex> lock(this->lockMutex); // 配合条件变量使用必须使用unique_lock，它可以交出锁的控制权
+            this->lockCondition.wait_for(lock, std::chrono::seconds(30)); // 最多等待30秒，这里有可能出现被系统中断
+            if (taskQue.empty()) break; // 虽然可能是被系统中断了，但是这里直接当失败了
+            Task* task = this->taskQue.top();
+            taskQue.pop();
+        }
+        task->fun();
+        delete task;
+    }
+    // 超出了循环就要判断是否需要动态缩减线程数
+    std::unique_lock<std::mutex> lock(this->lockMutex);
+    if (this->taskQue.size() < MIN_THREAD_POOL && this->curPoolSize > MIN_THREAD_POOL)
+    {
+        std::cout << "can del" << std::endl;
+        ThreadNode* curNext = cur->next;
+        ThreadNode* curPrev = cur->prev;
+        curPrev->next = curNext;
+        curNext->prev = curPrev;
+        this->curPoolSize--;
+        delete cur;
+    }
+}
+
+void test_fun()
+{
+    std::cout << "test_fun in threads: " << std::this_thread::get_id() << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(rand()%10 + 1)); // 随机休眠
+}
+
+int main()
+{
+    ThreadPool threadPool;
+    threadPool.Start();
+    for (int i = 0; i < 10; ++i)
+    {
+        int priority = rand() % 10 + 1;
+        Task* t1 = new Task(test_fun, priority);
+        threadPool.addTask(t1);
+    }
 }
