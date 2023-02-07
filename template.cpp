@@ -223,9 +223,9 @@
 //     return 0;
 // }
 
-#include <iostream>
-#include <string>
-#include <initializer_list>
+// #include <iostream>
+// #include <string>
+// #include <initializer_list>
 
 // void print()
 // {
@@ -265,13 +265,13 @@
 // }
 
 // 非依赖基类
-template <typename X>
-class Base
-{
-public:
-    int basefield;
-    using T = int;
-};
+// template <typename X>
+// class Base
+// {
+// public:
+//     int basefield;
+//     using T = int;
+// };
 
 // template <typename T>
 // class D2: public Base<double>
@@ -356,20 +356,73 @@ public:
 //     return 0;
 // }
 
+// #include <iostream>
+// using namespace std;
+
+// template <typename T>
+// T max(T a, T b)
+// {
+//     return a < b ? b: a;
+// }
+
+// int main()
+// {
+//     int c = ::max<>(1, 2);
+//     int d = ::max<int>(2, 3);
+//     cout << d << endl;
+//     int a = 1;
+//     double b = 1.2;
+// }
+#include <string>
 #include <iostream>
+#include <vector>
 using namespace std;
 
-template <typename T>
-T max(T a, T b)
-{
-    return a < b ? b: a;
-}
+// 变参
+// void print(){} //这里定义空的函数是为了当变参为空时调用该函数，否则会异常报错。
+
+// template <int... Types>
+// void print(int firstArg, int... args)
+// {
+//     std::cout << firstArg << std::endl;
+//     print(args...);
+// }
+
+// 应用
 
 int main()
 {
-    int c = ::max<>(1, 2);
-    int d = ::max<int>(2, 3);
-    cout << d << endl;
-    int a = 1;
-    double b = 1.2;
+    // vector<int> init{1, 2, 3};
+    // vector<int> init2{2, 3, 4};
+    // vector<vector<int>> container;
+    // container.emplace_back(init.begin(), init.end());
+    // container.emplace_back(init2.begin(), init2.end());
+    // // vector<int> c(v.begin(), v.end());
+    // for (auto& v: container)
+    // {
+    //     for (auto& c: v) cout << c << ", ";
+    //     cout << endl;
+    // }
+    // int tempSum = 0;
+    // calSum()
+    // print(7, 3, 2);
+    int a[] = {1, 2, 3};
+    int n = sizeof(a) / sizeof(a[0]);
+    // vector<int> c(a, a + n); // 数组指针可以作为iterator，因此此处可以成立；
+    // vector<int> c(a, *(&a + 1)); // 这样也可以
+    vector<int> (std::begin(a), std::end(a)); // 也可以这样，底层的实现就是上面的那种：
+    /*
+      template<typename _Tp, size_t _Nm>
+    inline _GLIBCXX14_CONSTEXPR _Tp*
+    begin(_Tp (&__arr)[_Nm])
+    { return __arr; }
+
+      template<typename _Tp, size_t _Nm>
+    inline _GLIBCXX14_CONSTEXPR _Tp*
+    end(_Tp (&__arr)[_Nm])
+    { return __arr + _Nm; }
+    
+    */
+    return 0;
+
 }
